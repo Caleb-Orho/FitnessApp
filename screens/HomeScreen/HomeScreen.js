@@ -17,7 +17,7 @@ export default function HomeScreen({ navigation }) {
 
             {/* Start Empty Workout TouchableOpacity */}
             <TouchableOpacity className='border-[1px] border-gray-200 flex items-center flex-row rounded-md mt-5'>
-                <Image source={add} className='w-10 h-10 mr-2' />
+                <Image source={add} className='w-10 h-9 mr-2' />
                 <Text className='text-black font-medium text-sm'>Start Empty Workout</Text>
             </TouchableOpacity>
 

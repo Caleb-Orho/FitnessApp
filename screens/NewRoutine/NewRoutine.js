@@ -4,7 +4,7 @@ import { TouchableOpacity, StyleSheet, View, Text, TextInput, Image } from 'reac
 import { note, add2, magnifyingglass, dumbell } from "../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
 
-export default function NewRoutine({ }) {
+export default function NewRoutine({ navigation }) {
 
     const route = useRoute();
     const [bounce, setBouonce] = useState(false);
@@ -47,8 +47,9 @@ export default function NewRoutine({ }) {
             </View>
 
             {/* Add exercise button */}
-            <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 bg-blue-700'>
-                <Image source={add2} className='w-10 h-10 mr-2' />
+            <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 bg-blue-700'
+                onPress={() => navigation.navigate("AddExercise")}>
+                <Image source={add2} className='w-10 h-9 mr-2' />
                 <Text className='text-white font-medium text-base'>Add exercise</Text>
             </TouchableOpacity>
 

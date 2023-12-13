@@ -24,3 +24,4 @@ export { default as note } from "./note.png";
 export { default as magnifyingglass } from "./magnifyingglass.png";
 export { default as triangleright } from "./triangleright.png";
 export { default as dumbell } from "./dumbell.png";
+export { default as search } from "./search.png";
