@@ -1,17 +1,23 @@
 import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import WorkoutScreen from './screens/WorkoutSreen/WorkoutSreen'
+import HomeScreen from './screens/HomeScreen/HomeScreen'
+import NewRoutine from './screens/NewRoutine/NewRoutine'
+import AddExercise from './screens/AddExercise/AddExercise'
+
+const Stack = createNativeStackNavigator();
+
 export default function App() {
   return (
-    // <View className="h-full items-center justify-center bg-red-100">
-    //   <Text>Open up App.js to start working on your app!</Text>
-    //   <StatusBar style="auto" />
-    // </View>
-
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen name="WorkoutScreen" component={WorkoutScreen} />
+        <Stack.Screen name="NewRoutine" component={NewRoutine} />
+        <Stack.Screen name="AddExercise" component={AddExercise} />
       </Stack.Navigator>
     </NavigationContainer>
   );
