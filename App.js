@@ -1,4 +1,5 @@
-import React, { createContext, useReducer, useContext } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -7,43 +8,19 @@ import HomeScreen from './screens/HomeScreen/HomeScreen'
 import NewRoutine from './screens/NewRoutine/NewRoutine'
 import AddExercise from './screens/AddExercise/AddExercise'
 
-// Create a context
-const AppContext = createContext();
-
-// Define initial state and reducer function
-const initialState = {
-  // Your shared values go here
-  sharedValue: 'Initial Value',
-};
-
-const appReducer = (state, action) => {
-  switch (action.type) {
-    case 'UPDATE_SHARED_VALUE':
-      return {
-        ...state,
-        sharedValue: action.payload,
-      };
-    // Add more cases for other actions if needed
-
-    default:
-      return state;
-  }
-};
+import { createContext, useState } from 'react';
 
 const Stack = createNativeStackNavigator();
-
-// Create a custom hook to use the context
-const useAppContext = () => {
-  return useContext(AppContext);
-};
-
+export const AppContext = createContext();
 
 export default function App() {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+  const [state] = useState("Test")
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ state }}>
       <NavigationContainer>
-        <Stack.Navigator>
+        <Stack.Navigator screenOptions={{
+          headerShown: false
+        }}>
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="WorkoutScreen" component={WorkoutScreen} />
           <Stack.Screen name="NewRoutine" component={NewRoutine} />
@@ -53,5 +30,4 @@ export default function App() {
     </AppContext.Provider>
   );
 }
-
 

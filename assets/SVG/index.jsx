@@ -25,3 +25,17 @@ export { default as magnifyingglass } from "./magnifyingglass.png";
 export { default as triangleright } from "./triangleright.png";
 export { default as dumbell } from "./dumbell.png";
 export { default as search } from "./search.png";
+export { default as threedots } from "./threedots.png";
+export { default as timer } from "./timer.png";
+export { default as trash } from "./trash.png";
+export { default as remove } from "./remove.png";
+export { default as repeat } from "./repeat.png";
+
+
+
+
+
+
+
+
+

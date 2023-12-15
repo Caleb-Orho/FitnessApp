@@ -1,16 +1,57 @@
-import React, { useState } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import { TouchableOpacity, View, Text, Image } from 'react-native'
 import { note, add, magnifyingglass, triangleright } from "../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
-
+import { AppContext } from '../../App';
+import * as FileSystem from 'expo-file-system';
 // navigation
 export default function HomeScreen({ navigation }) {
 
     const route = useRoute();
     const [expandMyRoutine, setExpandMyRoutine] = useState(false)
 
+    const [selectedExercises, setSelectedExercises] = useState([]);
+
+    const state = useContext(AppContext);
+
+    console.log(selectedExercises[0])
+    
+    useEffect(() => {
+        
+        const loadData = async () => {
+            try {
+                const fileUri = FileSystem.documentDirectory + 'love.json';
+
+                // Check if the file exists
+                const fileExists = await FileSystem.getInfoAsync(fileUri);
+
+                if (fileExists.exists) {
+                    // Read the file
+                    const jsonData = await FileSystem.readAsStringAsync(fileUri, {
+                        encoding: FileSystem.EncodingType.UTF8,
+                    });
+
+                    // Parse the JSON data and set it to the state
+                    const parsedData = JSON.parse(jsonData);
+                    setSelectedExercises(parsedData);
+                }
+            } catch (error) {
+                console.error('Error reading file:', error);
+            }
+        }
+        loadData();
+    }, []);
+
     return (
         <View className="px-5 h-full">
+            <View className='w-full flex items-center justify-center mt-14'>
+                <Text className='text-lg font-bold flex item-center justify-center'>
+                    Workout
+                </Text>
+
+            </View>
+            <View className="border-[1px] border-gray-200 mt-4" />
+
             <Text className='text-lg font-bold mt-3'>
                 Quick Start
             </Text>
