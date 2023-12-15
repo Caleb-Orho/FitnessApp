@@ -73,7 +73,7 @@ export default function ReplaceExercise({ navigation }) {
         })();
 
         setSelectedExercises(prevSelectedExercises => prevSelectedExercises.map((item, i) => i === replaceIndex ? selectedExerciseDetails : item));
-        navigation.navigate("NewRoutine");
+        navigation.goBack();
     }
 
     return (

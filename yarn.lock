@@ -1679,6 +1679,11 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
+"@react-native-community/checkbox@^0.5.16":
+  version "0.5.16"
+  resolved "https://registry.npmjs.org/@react-native-community/checkbox/-/checkbox-0.5.16.tgz"
+  integrity sha512-j4fmWe77EAayGnKJ52BljlN8apLT3xjxG/pJOA6HZ4ew63FiXmnY7VtxTzmvDKgSPrETdQc2lmx5mdXTAufJnw==
+
 "@react-native-community/cli-clean@11.3.7":
   version "11.3.7"
   resolved "https://registry.npmjs.org/@react-native-community/cli-clean/-/cli-clean-11.3.7.tgz"
@@ -3332,6 +3337,11 @@ expo-asset@~8.10.1:
     md5-file "^3.2.3"
     path-browserify "^1.0.0"
     url-parse "^1.5.9"
+
+expo-checkbox@~2.4.0:
+  version "2.4.0"
+  resolved "https://registry.npmjs.org/expo-checkbox/-/expo-checkbox-2.4.0.tgz"
+  integrity sha512-ZEe79B73I+NDkLZQ2pR1E5rv9ey1oleNI/s2/Jdb9zKWztS0KVU2K+drFn2t/zyoSbR1U+CNwik2v7h6JxrXcA==
 
 expo-constants@~14.4.2:
   version "14.4.2"
@@ -5677,7 +5687,7 @@ react-native-wheel-scrollview-picker@^2.0.4:
   resolved "https://registry.npmjs.org/react-native-wheel-scrollview-picker/-/react-native-wheel-scrollview-picker-2.0.4.tgz"
   integrity sha512-AL/8jp13duXF3piHpFJ6isqVeGAf9dfWWcmjhHiJc6WkdK/UdI+kNhoCeBLb2yx1gDrki5nHxnR0L22sMfAblw==
 
-react-native@*, react-native@0.72.6:
+react-native@*, "react-native@>= 0.62", react-native@0.72.6:
   version "0.72.6"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.72.6.tgz"
   integrity sha512-RafPY2gM7mcrFySS8TL8x+TIO3q7oAlHpzEmC7Im6pmXni6n1AuufGaVh0Narbr1daxstw7yW7T9BKW5dpVc2A==

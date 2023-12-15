@@ -20,6 +20,8 @@ export default function AddExercise({ navigation }) {
     const allExercises = [...bicepExercises];
 
     const { setSelectedExercises } = route.params;
+    const { screenName } = route.params;
+
     const [localSelectedExercises, setLocalSelectedExercises] = useState([]);
 
     useEffect(() => {
@@ -87,7 +89,10 @@ export default function AddExercise({ navigation }) {
             ...prevSelectedExercises,
             ...selectedExerciseDetails
         ]);
-        navigation.navigate("NewRoutine")
+
+
+        //navigation.navigate("NewRoutine")
+        navigation.goBack()
     }
 
     return (
@@ -103,8 +108,8 @@ export default function AddExercise({ navigation }) {
                     Add Exercise
                 </Text>
 
-                <TouchableOpacity className="" onPress={() => navigation.navigate("HomeScreen")}>
-                    <Text className='text-blue-700 font-medium text-lg'> Create </Text>
+                <TouchableOpacity className="" onPress={() => ''}>
+                    <Text className='text-blue-700 font-medium text-lg opacity-0'> Create </Text>
                 </TouchableOpacity>
             </View>
             <View className="border-[1px] border-gray-200 mt-4" />

@@ -72,14 +72,20 @@ export default function NewRoutine({ navigation }) {
         }
         // console.log(selectedExercises[0].setInfo);
         try {
-            const fileUri = FileSystem.documentDirectory + routineTitle + '.json';
+            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineTitle + "/";
+            const directoryExists = await FileSystem.getInfoAsync(directoryUri);
+
+            if (!directoryExists.exists) {
+                // If the directory doesn't exist, create it
+                await FileSystem.makeDirectoryAsync(directoryUri);
+            }
+
+            const fileUri = directoryUri + routineTitle + '.json';
             const jsonData = JSON.stringify(selectedExercises, null, 2);
 
             await FileSystem.writeAsStringAsync(fileUri, jsonData);
 
-            navigation.navigate("HomeScreen")
-            // Optional: Open the file in default viewer (e.g., download manager)
-            // await FileSystem.openAsync(fileUri);
+            navigation.navigate("HomeScreen");
         } catch (error) {
             console.error('Error writing file:', error);
         }
@@ -173,8 +179,6 @@ export default function NewRoutine({ navigation }) {
 
                 {selectedExercises.map((exercise, index) => (
                     <View className="flex flex-col mb-5">
-                        {/* <li key={index}>{exercise.name}</li> */}
-                        {/* Exercise TouchableOpacity with three dots */}
                         <View className="flex flex-row items-center justify-between">
                             <TouchableOpacity className="flex flex-row gap-3 items-center"
                                 onPress={() => handleExerciseClick(exercise)}>
@@ -194,7 +198,6 @@ export default function NewRoutine({ navigation }) {
                             type="text"
                             className="mt-3 outline:none mr-5 text-gray-900 placeholder:text-gray-400 placeholder:font-medium placeholder:text-base"
                             placeholder="Add routine notes here"
-
                         />
 
                         {/* Exercise TouchableOpacity with three dots */}

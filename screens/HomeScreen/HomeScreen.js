@@ -1,44 +1,71 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { TouchableOpacity, View, Text, Image } from 'react-native'
-import { note, add, magnifyingglass, triangleright } from "../../assets/SVG";
+import { note, add, magnifyingglass, triangleright, threedots } from "../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
 import { AppContext } from '../../App';
 import * as FileSystem from 'expo-file-system';
-// navigation
+
 export default function HomeScreen({ navigation }) {
 
     const route = useRoute();
     const [expandMyRoutine, setExpandMyRoutine] = useState(false)
 
-    const [selectedExercises, setSelectedExercises] = useState([]);
-
+    const [routine, setRoutine] = useState([])
+    const [routineName, setRoutineName] = useState();
     const state = useContext(AppContext);
+    const [editRoutineIndex, setEditRoutineIndex] = useState(-1);
 
-    console.log(selectedExercises[0])
-    
     useEffect(() => {
-        
         const loadData = async () => {
             try {
-                const fileUri = FileSystem.documentDirectory + 'love.json';
+                const directoryUri = FileSystem.documentDirectory + "/routines/";
 
-                // Check if the file exists
-                const fileExists = await FileSystem.getInfoAsync(fileUri);
+                // Get a list of files in the directory
+                const files = await FileSystem.readDirectoryAsync(directoryUri);
 
-                if (fileExists.exists) {
-                    // Read the file
-                    const jsonData = await FileSystem.readAsStringAsync(fileUri, {
-                        encoding: FileSystem.EncodingType.UTF8,
-                    });
+                setRoutineName(files);
 
-                    // Parse the JSON data and set it to the state
-                    const parsedData = JSON.parse(jsonData);
-                    setSelectedExercises(parsedData);
+                const allData = await Promise.all(
+                    files.map(async (file) => {
+                        try {
+                            const fileUri = directoryUri + file + "/" + (file + ".json");
+
+                            // Read the file
+                            const jsonData = await FileSystem.readAsStringAsync(fileUri, {
+                                encoding: FileSystem.EncodingType.UTF8,
+                            });
+
+                            // Parse the JSON data
+                            return JSON.parse(jsonData);
+                        } catch (error) {
+                            console.error(`Error reading file ${file}:`, error);
+                            return null; // In case of an error, you might want to handle it differently 
+                        }
+                    })
+                );
+
+                // Set the state with the combined data from all files
+                setRoutine(allData);
+            } catch (error) {
+                console.error('Error reading directory:', error);
+            }
+        };
+
+        const createDir = async () => {
+            try { 
+                const routinesDirectory = FileSystem.documentDirectory + "/routines/";
+                const routinesDirectoryInfo = await FileSystem.getInfoAsync(routinesDirectory);
+
+                if (!routinesDirectoryInfo.exists) {
+                    await FileSystem.makeDirectoryAsync(routinesDirectory);
+                    console.log('Directory created successfully');
                 }
             } catch (error) {
-                console.error('Error reading file:', error);
+                console.error('Error checking/creating routines directory:', error);
             }
-        }
+        };
+
+        createDir();
         loadData();
     }, []);
 
@@ -90,6 +117,48 @@ export default function HomeScreen({ navigation }) {
                     <Text className='text-base font-semibold text-gray-400'>My Routnies</Text>
                 </TouchableOpacity>
             </View>
+
+            {expandMyRoutine &&
+                Object.keys(routine).map((index) => (
+                    <View className="rounded-md border-[1px] border-gray-200 mt-5">
+
+                        <View className="flex flex-row justify-between px-5 mt-3">
+                            <Text className='text-black font-bold'>
+                                {routineName[index]}
+                            </Text>
+
+                            <TouchableOpacity onClick={() => {
+                                setShowOption(!showOption)
+                                setRoutineName(routineName)
+                            }}>
+                                <Image source={threedots} className='rotate-90 w-7 h-7' alt="add" />
+                            </TouchableOpacity>
+
+                        </View>
+
+                        <View className='px-5 mt-1 mb-3'>
+                            <View className="flex flex-row truncate ">
+                                {routine[index].map((exercise, exerciseIndex) => (
+
+                                    <React.Fragment key={exerciseIndex}>
+                                        <Text className="text-base font-semibold text-gray-400">{exercise.name}
+                                            {exerciseIndex !== routine[index].length - 1 && <Text>, </Text>}
+                                        </Text>
+                                    </React.Fragment>
+                                ))}
+                            </View>
+
+                            <View className='rounded w-full mt-2'>
+                                <TouchableOpacity className='w-full rounded-lg flex items-center justify-center rounded bg-blue-700 h-8'
+                                    onPress={() => navigation.navigate('StartRoutine', { routineName: routineName[index] })}>
+                                    <Text className='text-white font-medium text-sm'> Start Routine </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                    </View>
+                ))
+            }
 
         </View>
     )
