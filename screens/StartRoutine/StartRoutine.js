@@ -6,8 +6,12 @@ import { AppContext } from '../../App';
 import * as FileSystem from 'expo-file-system';
 import Checkbox from 'expo-checkbox';
 import EditSet from '../NewRoutine/EditSet';
+import TimePicker from '../NewRoutine/TimePicker';
+import Slider from 'react-native-slider'
+import GestureRecognizer, { swipeDirections } from 'react-native-swipe-gestures';
 
 export default function StartRoutine({ navigation }) {
+    const [initialTime, setInitalTime] = useState(5)
 
     const route = useRoute();
     const { routineName } = route.params;
@@ -21,8 +25,87 @@ export default function StartRoutine({ navigation }) {
     const [selectedExercises, setSelectedExercises] = useState([]);
     const [setEditIndex, setSetEditIndex] = useState([-1, -1]);
     const [checkedCount, setCheckedCount] = useState(0);
+    const [timePick, setTimePicker] = useState(false);
+
+    const [timeRemaining, setTimeRemaining] = useState(initialTime);
+    const [sliderValue, setSliderValue] = useState(0);
+    const [timerRunning, setTimerRunning] = useState(false);
+
+    const [state, setState] = useState({
+        myText: 'I\'m ready to get swiped!',
+        gestureName: 'none',
+        backgroundColor: '#fff',
+        test: [false, false, false, false, false, false, false, false, false],
+    })
+    const onSwipeLeft = (index) => {
+        setState({ myText: 'You swiped left!', test: { ...state.test, [index]: true } })
+    }
+
+    const onSwipeRight = (index) => {
+        setState({ myText: 'You swiped right!', test: { ...state.test, [index]: false } })
+    }
+
+    const config = {
+        velocityThreshold: 1,
+        directionalOffsetThreshold: 130
+    };
+
+    const onSwipe = (gestureName) => {
+        const { SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT } = swipeDirections;
+        setState({ gestureName: gestureName });
+        switch (gestureName) {
+            case SWIPE_UP:
+                setState({ backgroundColor: 'red' });
+                break;
+            case SWIPE_DOWN:
+                setState({ backgroundColor: 'green' });
+                break;
+            case SWIPE_LEFT:
+                setState({ backgroundColor: 'blue' });
+                break;
+            case SWIPE_RIGHT:
+                setState({ backgroundColor: 'yellow' });
+                break;
+        }
+    }
 
     // console.log(routine)
+
+    const resetTimer = () => {
+        setTimerRunning(false);
+        setTimeRemaining(initialTime);
+        setSliderValue(0);
+    };
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    };
+
+    useEffect(() => {
+        let timer;
+
+        if (timerRunning) {
+            timer = setInterval(() => {
+                setTimeRemaining((prevTime) => {
+                    if (prevTime === 0) {
+                        clearInterval(timer);
+                        setTimerRunning(false);
+
+                        setTimerRunning(false);
+                        setTimeRemaining(initialTime);
+                        setSliderValue(-1);
+                    }
+                    return prevTime > 0 ? prevTime - 1 : 0;
+                });
+                setSliderValue((prevValue) => Math.min(prevValue + 1, initialTime));
+            }, 1000);
+        }
+
+        return () => clearInterval(timer); // Cleanup on component unmount
+
+    }, [timerRunning]);
 
     useEffect(() => {
         if (setEditIndex[0] !== 3) {
@@ -75,6 +158,16 @@ export default function StartRoutine({ navigation }) {
 
     // Function to handle checkbox changes
     const handleCheckboxChange = (index) => {
+
+        if (!isCheckedArray[index]) {
+            if (restTime !== "OFF") {
+                const extractedNumber = parseInt(restTime.match(/\d+/)?.[0], 10) || 0;
+                setInitalTime(extractedNumber)
+                setTimerRunning(true);
+            }
+
+        }
+
         const newCheckedArray = [...isCheckedArray];
         newCheckedArray[index] = !newCheckedArray[index];
         setIsCheckedArray(newCheckedArray);
@@ -112,6 +205,19 @@ export default function StartRoutine({ navigation }) {
     const handleInputChange = (outerIndex, innerIndex, index, newValue) => {
         const updatedWorkoutList = [...routine];
         updatedWorkoutList[outerIndex].setInfo[innerIndex].items[index].value = newValue;
+    };
+
+    const removeExercise = (outerIndex, indexToRemove) => {
+        const updatedWorkoutList = [...routine[outerIndex].setInfo];
+        updatedWorkoutList.splice(indexToRemove, 1);
+
+
+        updatedWorkoutList.forEach((item, index) => {
+            const numericValue = parseFloat(item.items[0].value);
+            item.items[0].value = Number.isNaN(numericValue) ? item.items[0].value : index + 1;
+        })
+        routine[outerIndex].setInfo = updatedWorkoutList;
+        setDelete(!del);
     };
 
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -215,60 +321,77 @@ export default function StartRoutine({ navigation }) {
                             </View>
 
                             {exercise.setInfo.map((exercise, innerIndex) => (
-                                <View className="flex flex-row justify-between">
-                                    <View className="flex flex-row mt-2 gap-x-10" key={innerIndex}>
-                                        {/* <Text>{exercise.label}</Text> */}
+
+                                <GestureRecognizer
+                                    // onSwipe={(direction, state) => onSwipe(direction, state)}
+                                    onSwipeLeft={() => onSwipeLeft(innerIndex)}
+                                    onSwipeRight={() => onSwipeRight(innerIndex)}
+                                    config={config}
+                                >
+                                    <View className="flex flex-row mt-2 h-8" key={innerIndex}>
+
+
                                         {exercise.items.map((item, itemIndex) => (
-                                            <View className="flex flex-row">
+                                            <View className="flex flex-row items-center">
                                                 {itemIndex === 0 ? (
                                                     // Render TouchableOpacity for itemIndex === 0
                                                     <TouchableOpacity
-                                                        className="h-6 w-9"
+                                                        className="h-6 w-6 mr-12"
                                                         onPress={() => handleSetClick(index, innerIndex, itemIndex)}
                                                     >
                                                         <Text className="text-gray-400 font-medium text-lg"> {item.value.toString()} </Text>
                                                     </TouchableOpacity>
                                                 ) : (
-                                                    <>
-                                                        {itemIndex === 1 && <Text className="text-gray-400 font-medium text-sm w-28"> 0lbs x 12 </Text>}
+                                                    <View className="flex flex-row items-center">
+                                                        {itemIndex === 1 && <Text className="text-gray-400 font-medium text-sm w-16 mr-12"> 111lbs x 12 </Text>}
                                                         <TextInput
                                                             inputMode={itemIndex === 0 ? '' : 'numeric'}
                                                             key={`input-${key}-${itemIndex}`}
-                                                            className="text-lg outline:none text-black placeholder:text-gray-400 placeholder:font-medium font-bold mr-3"
+                                                            className="text-lg outline:none text-black placeholder:text-gray-400 placeholder:font-medium font-bold w-6 mr-12"
                                                             placeholder={item.value}
                                                             defaultValue={item.value !== '-' ? item.value : ''}
                                                             readOnly={itemIndex === 0}
                                                             onChangeText={text => handleInputChange(index, innerIndex, itemIndex, text)}
                                                         />
-                                                    </>
+                                                    </View>
                                                 )}
                                             </View>
                                         ))}
+
+                                        {!state.test[innerIndex] ? (
+                                            <TouchableOpacity className="flex items-center justify-center ml-3">
+                                                <Checkbox
+                                                    key={`input-${key}-${index}`}
+                                                    value={isCheckedArray[innerIndex]}
+                                                    onValueChange={() => handleCheckboxChange(innerIndex)}
+                                                    color={isCheckedArray[innerIndex] ? 'green' : undefined}
+                                                    className="w-6 h-6 rounded"
+                                                />
+                                            </TouchableOpacity>
+                                        ) : (
+                                            <TouchableOpacity onPress={() => removeExercise(index, innerIndex)}>
+                                                <Image source={trash} className='w-5 h-7 ml-3' />
+                                            </TouchableOpacity>
+                                        )}
+
                                     </View>
-                                    {/* onPress={() => removeSet(index, innerIndex)} */}
-                                    <TouchableOpacity>
-                                        <Checkbox
-                                            key={`input-${key}-${index}`}
-                                            value={isCheckedArray[innerIndex]}
-                                            onValueChange={() => handleCheckboxChange(innerIndex)}
-                                            color={isCheckedArray[innerIndex] ? 'green' : undefined}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
+                                </GestureRecognizer>
+
                             ))}
 
 
                         </View>
 
                         {/* Add set TouchableOpacity */}
-                        <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-2 bg-gray-200'
+                        < TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-2 bg-gray-200'
                             onPress={() => addSet(index)}>
                             <Image source={add2} className='w-10 h-9' />
                             <Text className='text-white font-medium text-base'> Add Set </Text>
                         </TouchableOpacity>
 
                     </View>
-                ))}
+                ))
+                }
 
                 {/* Add exercise TouchableOpacity */}
                 <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 bg-blue-700'
@@ -287,8 +410,68 @@ export default function StartRoutine({ navigation }) {
                         setEditSet(false);
                     }}
                 />
-            </ScrollView>
-        </View>
+
+                <TimePicker
+                    isOpen={timePick}
+                    onClose={() => {
+                        setTimePicker(false)
+                    }}
+                    setRestTime={(selectedTime) => {
+                        setRestTime(selectedTime)
+                        setTimePicker(false);
+                        // console.log(selectedTime)
+                        if (selectedTime !== 'OFF') {
+                            const extractedNumber = selectedTime.match(/\d+/)[0];
+                            clearInterval(timer);
+                            setTimerRunning(false);
+                            setTimeRemaining(extractedNumber);
+                            setSliderValue(0);
+                        }
+
+                    }}
+                />
+
+                <GestureRecognizer
+                    onSwipe={(direction, state) => onSwipe(direction, state)}
+                    onSwipeLeft={(state) => onSwipeLeft(state)}
+                    config={config}
+                    style={{
+                        flex: 1,
+                        backgroundColor: 'green'
+                    }}
+                >
+                    <Text>{state.myText}</Text>
+                    <Text>onSwipe callback received gesture: {state.gestureName}</Text>
+                </GestureRecognizer>
+
+            </ScrollView >
+
+            {/* The timer countdown */}
+            {timerRunning && (
+                <View className="fixed bottom-0 left-0 right-0 bg-white mt-5 mb-5 h-12 border border-blue-700 rounded-md flex flex-row items-center justify-center justify-between px-5">
+
+                    <View className="flex flex-col items-center w-full flex-1 mr-5">
+                        <Text className='text-black font-medium text-base'>{formatTime(timeRemaining)}</Text>
+                        <Slider
+                            trackStyle={{ height: 8, borderRadius: 4, backgroundColor: '#edf2f7' }}
+                            style={{ width: '100%' }}
+                            minimumValue={0}
+                            maximumValue={initialTime}
+                            value={sliderValue}
+                            disabled={true}
+                            thumbStyle={{ height: 0, width: 0, backgroundColor: 'green' }}
+                            className="h-5"
+                        />
+                    </View>
+
+                    <TouchableOpacity className='w-20 rounded-md rounded bg-blue-700 h-8 flex justify-center items-center'
+                        onPress={() => navigation.navigate("AddExercise", { setSelectedExercises })}>
+                        <Text className='text-white font-medium text-base' onPress={resetTimer}> Stop </Text>
+                    </TouchableOpacity>
+
+                </View>
+            )}
+        </View >
     )
 }
 
