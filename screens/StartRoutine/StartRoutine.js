@@ -1,31 +1,35 @@
-import React, { useState, useContext, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TouchableOpacity, View, Text, Image, TextInput, ScrollView } from 'react-native'
-import { note, add, magnifyingglass, triangleright, threedots, timer, trash, add2 } from "../../assets/SVG";
+import { threedots, timer, trash, add2 } from "../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
-import { AppContext } from '../../App';
 import * as FileSystem from 'expo-file-system';
 import Checkbox from 'expo-checkbox';
-import EditSet from '../NewRoutine/EditSet';
-import TimePicker from '../NewRoutine/TimePicker';
+import EditSet from '../../Components/Utils/EditSet';
+import TimePicker from '../../Components/Utils/TimePicker';
 import Slider from 'react-native-slider'
-import GestureRecognizer, { swipeDirections } from 'react-native-swipe-gestures';
+import GestureRecognizer from 'react-native-swipe-gestures';
+import * as Haptics from 'expo-haptics';
 
 export default function StartRoutine({ navigation }) {
-    const [initialTime, setInitalTime] = useState(5)
+    const [initialTime, setInitalTime] = useState(0)
 
     const route = useRoute();
     const { routineName } = route.params;
     const [routine, setRoutine] = useState([])
-    const [restTime, setRestTime] = useState('OFF');
-    const [key, setKey] = useState(0);
+    const [key] = useState(0);
     const [list] = useState(['W', 'F', 'D', 3]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [del, setDelete] = useState(false);
     const [editSet, setEditSet] = useState(false);
-    const [selectedExercises, setSelectedExercises] = useState([]);
     const [setEditIndex, setSetEditIndex] = useState([-1, -1]);
     const [checkedCount, setCheckedCount] = useState(0);
-    const [timePick, setTimePicker] = useState(false);
+    const [isCheckedArray, setIsCheckedArray] = useState([]);
+
+    const [timePick, setTimePicker] = useState({
+        isOpen: false,
+        exerciseName: '',
+    });
+    const [exerciseRestTimes, setExerciseRestTimes] = useState({}); // New state to store rest times for each exercise
 
     const [timeRemaining, setTimeRemaining] = useState(initialTime);
     const [sliderValue, setSliderValue] = useState(0);
@@ -37,6 +41,14 @@ export default function StartRoutine({ navigation }) {
         backgroundColor: '#fff',
         test: [false, false, false, false, false, false, false, false, false],
     })
+
+    const handleRestTimeChange = (exerciseName, selectedTime) => {
+        setExerciseRestTimes((prevRestTimes) => ({
+            ...prevRestTimes,
+            [exerciseName]: selectedTime,
+        }));
+    };
+
     const onSwipeLeft = (index) => {
         setState({ myText: 'You swiped left!', test: { ...state.test, [index]: true } })
     }
@@ -49,27 +61,6 @@ export default function StartRoutine({ navigation }) {
         velocityThreshold: 1,
         directionalOffsetThreshold: 130
     };
-
-    const onSwipe = (gestureName) => {
-        const { SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT } = swipeDirections;
-        setState({ gestureName: gestureName });
-        switch (gestureName) {
-            case SWIPE_UP:
-                setState({ backgroundColor: 'red' });
-                break;
-            case SWIPE_DOWN:
-                setState({ backgroundColor: 'green' });
-                break;
-            case SWIPE_LEFT:
-                setState({ backgroundColor: 'blue' });
-                break;
-            case SWIPE_RIGHT:
-                setState({ backgroundColor: 'yellow' });
-                break;
-        }
-    }
-
-    // console.log(routine)
 
     const resetTimer = () => {
         setTimerRunning(false);
@@ -90,8 +81,8 @@ export default function StartRoutine({ navigation }) {
             timer = setInterval(() => {
                 setTimeRemaining((prevTime) => {
                     if (prevTime === 0) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                         clearInterval(timer);
-                        setTimerRunning(false);
 
                         setTimerRunning(false);
                         setTimeRemaining(initialTime);
@@ -122,6 +113,19 @@ export default function StartRoutine({ navigation }) {
         setDelete(!del);
     }, [editSet == false]);
 
+    // Set the initial state for isCheckedArray when routine changes
+    useEffect(() => {
+        // Set the initial state with an array of objects
+        setIsCheckedArray(
+            routine.map((exercise) => ({
+                ...exercise.setInfo.reduce((acc, _, innerIndex) => {
+                    acc[innerIndex] = false;
+                    return acc;
+                }, {}),
+            }))
+        );
+    }, [routine, del]);
+
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -139,6 +143,7 @@ export default function StartRoutine({ navigation }) {
 
                     // Set the state with the content of the last file
                     setRoutine(lastFileData);
+
                 } catch (error) {
                     console.error('Error reading last file:', error);
                 }
@@ -150,31 +155,34 @@ export default function StartRoutine({ navigation }) {
         loadData();
     }, []);
 
-    const [isCheckedArray, setIsCheckedArray] = useState(Array(20).fill(false));
-
     const removeItem = (indexToRemove) => {
         setRoutine(prevRoutine => prevRoutine.filter((_, index) => index !== indexToRemove));
     };
 
     // Function to handle checkbox changes
-    const handleCheckboxChange = (index) => {
+    const handleCheckboxChange = (index, innerIndex, exercise) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
-        if (!isCheckedArray[index]) {
-            if (restTime !== "OFF") {
-                const extractedNumber = parseInt(restTime.match(/\d+/)?.[0], 10) || 0;
+        if (!isCheckedArray[index][innerIndex] && !timerRunning) {
+            if (exerciseRestTimes[exercise] !== "OFF" && exerciseRestTimes[exercise]) {
+                const extractedNumber = parseInt(exerciseRestTimes[exercise].match(/\d+/)?.[0], 10) || 0;
                 setInitalTime(extractedNumber)
                 setTimerRunning(true);
             }
-
         }
 
         const newCheckedArray = [...isCheckedArray];
-        newCheckedArray[index] = !newCheckedArray[index];
+        newCheckedArray[index][innerIndex] = !newCheckedArray[index][innerIndex];
         setIsCheckedArray(newCheckedArray);
 
-        // Update the count based on the newCheckedArray
-        const newCheckedCount = newCheckedArray.filter((isChecked) => isChecked).length;
+        // Use the updated state (newCheckedArray) to calculate the count
+        const newCheckedCount = newCheckedArray
+            .flatMap(obj => Object.values(obj)) // Flatten values from objects
+            .filter(isChecked => isChecked === true)
+            .length;
+
         setCheckedCount(newCheckedCount);
+
     };
 
     const handleSetClick = (outerIndex, innerIndex, index) => {
@@ -199,6 +207,7 @@ export default function StartRoutine({ navigation }) {
         const updatedList = [...updatedWorkoutList, newItem];
 
         routine[index].setInfo = updatedList;
+
         setDelete(!del);
     };
 
@@ -304,9 +313,9 @@ export default function StartRoutine({ navigation }) {
                         {/* Exercise TouchableOpacity with three dots */}
                         <View className="flex flex-row items-center mt-3">
                             <TouchableOpacity className="w-full flex flex-row gap-1 items-center"
-                                onPress={() => setTimePicker(!timePick)}>
+                                onPress={() => setTimePicker({ isOpen: true, exerciseName: exercise.name })}>
                                 <Image source={timer} alt={exercise.name} className="w-7 h-7" />
-                                <Text className="flex flex-col items-start text-blue-700 text-lg font-bold">Rest Timer: {restTime}</Text>
+                                <Text className="flex flex-col items-start text-blue-700 text-lg font-bold">Rest Timer: {exerciseRestTimes[exercise.name] || 'OFF'} </Text>
                             </TouchableOpacity>
                         </View>
 
@@ -320,7 +329,7 @@ export default function StartRoutine({ navigation }) {
                                 <Text className="text-gray-400 font-medium text-lg"> REPS </Text>
                             </View>
 
-                            {exercise.setInfo.map((exercise, innerIndex) => (
+                            {exercise.setInfo.map((sets, innerIndex) => (
 
                                 <GestureRecognizer
                                     // onSwipe={(direction, state) => onSwipe(direction, state)}
@@ -331,7 +340,7 @@ export default function StartRoutine({ navigation }) {
                                     <View className="flex flex-row mt-2 h-8" key={innerIndex}>
 
 
-                                        {exercise.items.map((item, itemIndex) => (
+                                        {sets.items.map((item, itemIndex) => (
                                             <View className="flex flex-row items-center">
                                                 {itemIndex === 0 ? (
                                                     // Render TouchableOpacity for itemIndex === 0
@@ -362,10 +371,13 @@ export default function StartRoutine({ navigation }) {
                                             <TouchableOpacity className="flex items-center justify-center ml-3">
                                                 <Checkbox
                                                     key={`input-${key}-${index}`}
-                                                    value={isCheckedArray[innerIndex]}
-                                                    onValueChange={() => handleCheckboxChange(innerIndex)}
-                                                    color={isCheckedArray[innerIndex] ? 'green' : undefined}
+                                                    value={isCheckedArray?.[index]?.[innerIndex] || false}
+                                                    onValueChange={() => handleCheckboxChange(index, innerIndex, exercise.name)}
+                                                    color={isCheckedArray?.[index]?.[innerIndex] ? 'green' : undefined}
                                                     className="w-6 h-6 rounded"
+                                                    onChange={
+                                                        () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }
+                                                    }
                                                 />
                                             </TouchableOpacity>
                                         ) : (
@@ -382,6 +394,14 @@ export default function StartRoutine({ navigation }) {
 
                         </View>
 
+
+                        {/* <Button
+                            title="Light"
+                            onPress={
+                                () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                            }
+                        /> */}
+
                         {/* Add set TouchableOpacity */}
                         < TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-2 bg-gray-200'
                             onPress={() => addSet(index)}>
@@ -395,7 +415,10 @@ export default function StartRoutine({ navigation }) {
 
                 {/* Add exercise TouchableOpacity */}
                 <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 bg-blue-700'
-                    onPress={() => navigation.navigate("AddExercise", { setSelectedExercises: setRoutine, screenName: 'StartRoutine' })}>
+                    onPress={() => {
+                        navigation.navigate("AddExercise", { setSelectedExercises: setRoutine, screenName: 'StartRoutine' }),
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                    }}>
                     <Image source={add2} className='w-10 h-9 mr-2' />
                     <Text className='text-white font-medium text-base'>Add exercise</Text>
                 </TouchableOpacity>
@@ -412,37 +435,41 @@ export default function StartRoutine({ navigation }) {
                 />
 
                 <TimePicker
-                    isOpen={timePick}
+                    isOpen={timePick.isOpen}
                     onClose={() => {
-                        setTimePicker(false)
+                        setTimePicker({ ...timePick, isOpen: false });
                     }}
                     setRestTime={(selectedTime) => {
-                        setRestTime(selectedTime)
-                        setTimePicker(false);
-                        // console.log(selectedTime)
+                        handleRestTimeChange(timePick.exerciseName, selectedTime);
+                        setTimePicker({ ...timePick, isOpen: false });
+
                         if (selectedTime !== 'OFF') {
-                            const extractedNumber = selectedTime.match(/\d+/)[0];
                             clearInterval(timer);
                             setTimerRunning(false);
-                            setTimeRemaining(extractedNumber);
                             setSliderValue(0);
+
+                            const components = selectedTime.split(' ');
+                            let minutes = 0;
+                            let seconds = 0;
+
+                            for (let i = 0; i < components.length; i += 2) {
+                                const value = parseInt(components[i], 10);
+                                const unit = components[i + 1];
+
+                                if (unit === 'min') {
+                                    minutes += value;
+                                } else if (unit === 'sec') {
+                                    seconds += value;
+                                }
+                            }
+
+                            const totalTimeInSeconds = minutes * 60 + seconds;
+                            setTimeRemaining(totalTimeInSeconds);
+                            console.log(totalTimeInSeconds)
                         }
 
                     }}
                 />
-
-                <GestureRecognizer
-                    onSwipe={(direction, state) => onSwipe(direction, state)}
-                    onSwipeLeft={(state) => onSwipeLeft(state)}
-                    config={config}
-                    style={{
-                        flex: 1,
-                        backgroundColor: 'green'
-                    }}
-                >
-                    <Text>{state.myText}</Text>
-                    <Text>onSwipe callback received gesture: {state.gestureName}</Text>
-                </GestureRecognizer>
 
             </ScrollView >
 
@@ -465,8 +492,8 @@ export default function StartRoutine({ navigation }) {
                     </View>
 
                     <TouchableOpacity className='w-20 rounded-md rounded bg-blue-700 h-8 flex justify-center items-center'
-                        onPress={() => navigation.navigate("AddExercise", { setSelectedExercises })}>
-                        <Text className='text-white font-medium text-base' onPress={resetTimer}> Stop </Text>
+                        onPress={resetTimer}>
+                        <Text className='text-white font-medium text-base' > Stop </Text>
                     </TouchableOpacity>
 
                 </View>

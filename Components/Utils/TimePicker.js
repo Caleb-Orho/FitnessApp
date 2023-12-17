@@ -1,11 +1,11 @@
-import { TouchableOpacity, View, Text, TextInput, Image, ScrollView, Modal } from 'react-native'
-import { remove, repeat } from "../../assets/SVG";
+import { TouchableOpacity, View, Text, Modal } from 'react-native'
 import ScrollPicker from "react-native-wheel-scrollview-picker";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { AppContext } from '../../App';
 
 const TimePicker = ({ isOpen, onClose, setRestTime }) => {
-    const time = Array.from({ length: 61 / 5 }, (_, index) => (index * 5 === 0) ? "OFF" : `${index * 5}S`);
 
+    const { time } = useContext(AppContext);
     const [selectedTime, setSElectedTime] = useState(0)
 
     useEffect(() => {
@@ -46,7 +46,7 @@ const TimePicker = ({ isOpen, onClose, setRestTime }) => {
                             itemTextStyle={{ fontWeight: 'bold', color: '#d8d8d8' }}
                             activeItemTextStyle={{ fontSize: 18, fontWeight: 'bold', color: 'blue' }}
 
-                            onValueChange={(data, selectedIndex) => {
+                            onValueChange={(data) => {
                                 setSElectedTime(data);
                             }}
                         />

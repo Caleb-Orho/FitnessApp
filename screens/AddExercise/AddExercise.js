@@ -100,7 +100,7 @@ export default function AddExercise({ navigation }) {
 
             {/* Header */}
             <View className='w-full flex items-center justify-center justify-between flex-row mt-14'>
-                <TouchableOpacity className="" onPress={() => navigation.navigate("NewRoutine")}>
+                <TouchableOpacity className="" onPress={() => navigation.goBack()}>
                     <Text className='text-gray-400 font-medium text-lg'> Cancel </Text>
                 </TouchableOpacity>
 

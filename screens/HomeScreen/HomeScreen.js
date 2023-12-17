@@ -1,19 +1,44 @@
 import React, { useState, useContext, useEffect } from 'react'
 import { TouchableOpacity, View, Text, Image } from 'react-native'
 import { note, add, magnifyingglass, triangleright, threedots } from "../../assets/SVG";
-import { useRoute } from '@react-navigation/native';
 import { AppContext } from '../../App';
+import EditRotineOptions from '../../Components/Utils/EditRotineOptions';
+import Alerts from '../../Components/Utils/Alerts';
 import * as FileSystem from 'expo-file-system';
 
 export default function HomeScreen({ navigation }) {
 
-    const route = useRoute();
-    const [expandMyRoutine, setExpandMyRoutine] = useState(false)
-
+    const [expandMyRoutine, setExpandMyRoutine] = useState(true)
+    const [del, setDelete] = useState(false);
     const [routine, setRoutine] = useState([])
     const [routineName, setRoutineName] = useState();
-    const state = useContext(AppContext);
-    const [editRoutineIndex, setEditRoutineIndex] = useState(-1);
+    const { setState, state } = useContext(AppContext);
+
+    const [editRoutine, setEditRoutine] = useState(false);
+    const [setEditIndex, setSetEditIndex] = useState([-1, -1]);
+
+    const [isAlertVisible, setAlertVisible] = useState(false);
+
+    const handleAlertClose = async (selectedOption) => {
+        setAlertVisible(false);
+        if (selectedOption == 1) {
+            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineName;
+
+            try {
+                await FileSystem.deleteAsync(directoryUri, { idempotent: true });
+                console.log("Directory deleted successfully");
+                setState(!state)
+            } catch (error) {
+                console.error("Error deleting directory:", error);
+            }
+        }
+
+    };
+
+    const alertOptions = [
+        { value: '1', label: 'Delete Routine' },
+        { value: '2', label: 'Cancel' }
+    ];
 
     useEffect(() => {
         const loadData = async () => {
@@ -21,15 +46,13 @@ export default function HomeScreen({ navigation }) {
                 const directoryUri = FileSystem.documentDirectory + "/routines/";
 
                 // Get a list of files in the directory
-                const files = await FileSystem.readDirectoryAsync(directoryUri);
-
-                setRoutineName(files);
+                const directories = await FileSystem.readDirectoryAsync(directoryUri);
+                setRoutineName(directories);
 
                 const allData = await Promise.all(
-                    files.map(async (file) => {
+                    directories.map(async (file) => {
                         try {
                             const fileUri = directoryUri + file + "/" + (file + ".json");
-
                             // Read the file
                             const jsonData = await FileSystem.readAsStringAsync(fileUri, {
                                 encoding: FileSystem.EncodingType.UTF8,
@@ -52,7 +75,7 @@ export default function HomeScreen({ navigation }) {
         };
 
         const createDir = async () => {
-            try { 
+            try {
                 const routinesDirectory = FileSystem.documentDirectory + "/routines/";
                 const routinesDirectoryInfo = await FileSystem.getInfoAsync(routinesDirectory);
 
@@ -67,7 +90,23 @@ export default function HomeScreen({ navigation }) {
 
         createDir();
         loadData();
-    }, []);
+    }, [state]);
+
+    useEffect(() => {
+        if (setEditIndex[0] !== 3) {
+
+            if (setEditIndex[0] == 2) {
+                setAlertVisible(true);
+                setSetEditIndex([-1, -1]);
+            } else if (setEditIndex[0] == 1) {
+                navigation.navigate("EditRotine", { routineName: routineName[setEditIndex[1]] });
+                setSetEditIndex([-1, -1]);
+            }
+
+        }
+        setDelete(!del);
+
+    }, [editRoutine == false]);
 
     return (
         <View className="px-5 h-full">
@@ -120,16 +159,17 @@ export default function HomeScreen({ navigation }) {
 
             {expandMyRoutine &&
                 Object.keys(routine).map((index) => (
-                    <View className="rounded-md border-[1px] border-gray-200 mt-5">
+                    <View key={index} className="rounded-md border-[1px] border-gray-200 mt-5">
 
                         <View className="flex flex-row justify-between px-5 mt-3">
                             <Text className='text-black font-bold'>
                                 {routineName[index]}
                             </Text>
 
-                            <TouchableOpacity onClick={() => {
-                                setShowOption(!showOption)
-                                setRoutineName(routineName)
+                            <TouchableOpacity onPress={() => {
+                                setEditRoutine(!editRoutine)
+                                setSetEditIndex(previousIndex => [previousIndex[0], index])
+                                // setRoutineName(routineName[index])
                             }}>
                                 <Image source={threedots} className='rotate-90 w-7 h-7' alt="add" />
                             </TouchableOpacity>
@@ -160,6 +200,24 @@ export default function HomeScreen({ navigation }) {
                 ))
             }
 
+
+            <EditRotineOptions
+                isOpen={editRoutine}
+                onClose={() => {
+                    setEditRoutine(false)
+                }}
+                setSetEditIndex={(selectedIndex) => {
+                    setSetEditIndex(previousIndex => [selectedIndex, previousIndex[1]])
+                    setEditRoutine(false);
+                }}
+            />
+
+            <Alerts
+                visible={isAlertVisible}
+                title="Are you sure you want to delete this routine?"
+                options={alertOptions}
+                onClose={handleAlertClose}
+            />
         </View>
     )
 }

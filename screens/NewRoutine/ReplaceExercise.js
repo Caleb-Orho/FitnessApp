@@ -79,6 +79,22 @@ export default function ReplaceExercise({ navigation }) {
     return (
         <View className="px-5 h-full">
 
+            {/* Header */}
+            <View className='w-full flex items-center justify-center justify-between flex-row mt-14'>
+                <TouchableOpacity className="" onPress={() => navigation.goBack()}>
+                    <Text className='text-gray-400 font-medium text-lg'> Cancel </Text>
+                </TouchableOpacity>
+
+                <Text className='text-lg font-bold flex item-center justify-center'>
+                    Replace Exercise
+                </Text>
+
+                <TouchableOpacity className="" onPress={() => ''}>
+                    <Text className='text-blue-700 font-medium text-lg opacity-0'> Create </Text>
+                </TouchableOpacity>
+            </View>
+            <View className="border-[1px] border-gray-200 mt-4" />
+
             {/* Search Input */}
             <View className="w-full mt-5">
                 <View className="flex flex-row items-center bg-gray-200 rounded-md">
