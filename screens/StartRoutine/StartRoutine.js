@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { TouchableOpacity, View, Text, Image, TextInput, ScrollView } from 'react-native'
 import { threedots, timer, trash, add2 } from "../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
@@ -6,12 +6,17 @@ import * as FileSystem from 'expo-file-system';
 import Checkbox from 'expo-checkbox';
 import EditSet from '../../Components/Utils/EditSet';
 import TimePicker from '../../Components/Utils/TimePicker';
+import Clock from '../../Components/Utils/Clock';
 import Slider from 'react-native-slider'
 import GestureRecognizer from 'react-native-swipe-gestures';
 import * as Haptics from 'expo-haptics';
+import Alerts from '../../Components/Utils/Alerts';
+import { AppContext } from '../../App';
 
 export default function StartRoutine({ navigation }) {
     const [initialTime, setInitalTime] = useState(0)
+
+    const { setState, state } = useContext(AppContext);
 
     const route = useRoute();
     const { routineName } = route.params;
@@ -24,18 +29,22 @@ export default function StartRoutine({ navigation }) {
     const [setEditIndex, setSetEditIndex] = useState([-1, -1]);
     const [checkedCount, setCheckedCount] = useState(0);
     const [isCheckedArray, setIsCheckedArray] = useState([]);
-
+    const [showClock, setShowClok] = useState(false);
     const [timePick, setTimePicker] = useState({
         isOpen: false,
         exerciseName: '',
     });
     const [exerciseRestTimes, setExerciseRestTimes] = useState({}); // New state to store rest times for each exercise
-
-    const [timeRemaining, setTimeRemaining] = useState(initialTime);
+    const [time, setTime] = useState(initialTime)
+    const [setTimeRemaining] = useState(initialTime);
     const [sliderValue, setSliderValue] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
 
-    const [state, setState] = useState({
+    const [pevRoutine, setPrevRoutine] = useState()
+
+    const [isAlertVisible, setAlertVisible] = useState(false);
+
+    const [swipeState, setSwipeState] = useState({
         myText: 'I\'m ready to get swiped!',
         gestureName: 'none',
         backgroundColor: '#fff',
@@ -49,12 +58,21 @@ export default function StartRoutine({ navigation }) {
         }));
     };
 
+    const [alertOptions] = useState([
+        { value: '1', label: 'Ok' },
+        // Add more default options if needed
+    ]);
+
+    const handleAlertClose = () => {
+        setAlertVisible(false);
+    };
+
     const onSwipeLeft = (index) => {
-        setState({ myText: 'You swiped left!', test: { ...state.test, [index]: true } })
+        setSwipeState({ myText: 'You swiped left!', test: { ...swipeState.test, [index]: true } })
     }
 
     const onSwipeRight = (index) => {
-        setState({ myText: 'You swiped right!', test: { ...state.test, [index]: false } })
+        setSwipeState({ myText: 'You swiped right!', test: { ...swipeState.test, [index]: false } })
     }
 
     const config = {
@@ -88,9 +106,13 @@ export default function StartRoutine({ navigation }) {
                         setTimeRemaining(initialTime);
                         setSliderValue(-1);
                     }
+                    const interval = (prevTime / initialTime) * 100;
+                    setSliderValue(interval)
+                    setTime(prevTime)
                     return prevTime > 0 ? prevTime - 1 : 0;
                 });
-                setSliderValue((prevValue) => Math.min(prevValue + 1, initialTime));
+                // setSliderValue((prevValue) => Math.max(((initialTime - timeRemaining) / initialTime) * 100, 0));
+
             }, 1000);
         }
 
@@ -131,11 +153,11 @@ export default function StartRoutine({ navigation }) {
             try {
                 const directoryUri = FileSystem.documentDirectory + "/routines/" + routineName + "/";
 
-                // Get a list of files in the directory
+                // Read file
                 const files = await FileSystem.readDirectoryAsync(directoryUri);
-
+                console.log(files)
                 try {
-                    const jsonData = await FileSystem.readAsStringAsync(directoryUri + files[files.length - 1], {
+                    const jsonData = await FileSystem.readAsStringAsync(directoryUri + files[0], {
                         encoding: FileSystem.EncodingType.UTF8,
                     });
 
@@ -144,6 +166,10 @@ export default function StartRoutine({ navigation }) {
                     // Set the state with the content of the last file
                     setRoutine(lastFileData);
 
+                    const file = FileSystem.documentDirectory + "/routines/Trash/Trash{2023-12-17, 11:38:55 p.m.}.json"
+                    const lastData = await FileSystem.readAsStringAsync(directoryUri + files[1], { encoding: FileSystem.EncodingType.UTF8, });
+                    const Data = JSON.parse(lastData);
+                    // setPrevRoutine(Data)
                 } catch (error) {
                     console.error('Error reading last file:', error);
                 }
@@ -155,6 +181,22 @@ export default function StartRoutine({ navigation }) {
         loadData();
     }, []);
 
+    // useEffect(() => {
+    //     async function listFiles() {
+    //         try {
+    // const file = FileSystem.documentDirectory + "/routines/Trash/Trash{2023-12-17, 11:38:55 p.m.}.json"
+    // const jsonData = await FileSystem.readAsStringAsync(file, { encoding: FileSystem.EncodingType.UTF8, });
+    // const Data = JSON.parse(jsonData);
+    //             // setPrevRoutine(Data)
+
+    //             console.log(lastFileData);
+    //         } catch (error) {
+    //             console.error('Error reading directory:', error);
+    //         }
+    //     }
+    //     listFiles();
+    // }, [])
+
     const removeItem = (indexToRemove) => {
         setRoutine(prevRoutine => prevRoutine.filter((_, index) => index !== indexToRemove));
     };
@@ -165,9 +207,10 @@ export default function StartRoutine({ navigation }) {
 
         if (!isCheckedArray[index][innerIndex] && !timerRunning) {
             if (exerciseRestTimes[exercise] !== "OFF" && exerciseRestTimes[exercise]) {
-                const extractedNumber = parseInt(exerciseRestTimes[exercise].match(/\d+/)?.[0], 10) || 0;
+                const extractedNumber = convertToSeond(exerciseRestTimes[exercise].split(' '))
                 setInitalTime(extractedNumber)
                 setTimerRunning(true);
+                setTime(extractedNumber)
             }
         }
 
@@ -182,7 +225,6 @@ export default function StartRoutine({ navigation }) {
             .length;
 
         setCheckedCount(newCheckedCount);
-
     };
 
     const handleSetClick = (outerIndex, innerIndex, index) => {
@@ -245,6 +287,61 @@ export default function StartRoutine({ navigation }) {
     const minutes = Math.floor(elapsedTime / 60);
     const seconds = elapsedTime % 60;
 
+    const convertToSeond = (components) => {
+        let minutes = 0;
+        let seconds = 0;
+
+        for (let i = 0; i < components.length; i += 2) {
+            const value = parseInt(components[i], 10);
+            const unit = components[i + 1];
+
+            if (unit === 'min') {
+                minutes += value;
+            } else if (unit === 'sec') {
+                seconds += value;
+            }
+        }
+
+        return minutes * 60 + seconds;
+    }
+
+    const finishWorkout = async () => {
+        for (const exercise of routine) {
+            for (const set of exercise.setInfo) {
+                for (const item of set.items) {
+                    if (item.value === '' || item.value === '-') {
+                        setAlertVisible(true);
+                        return true;
+                    }
+                }
+            }
+        }
+
+        try {
+            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineName + "/";
+            const directoryExists = await FileSystem.getInfoAsync(directoryUri);
+
+            if (!directoryExists.exists) {
+                // If the directory doesn't exist, create it
+                await FileSystem.makeDirectoryAsync(directoryUri);
+            }
+
+            const fileUri = directoryUri + routineName + getDate() + '.json';
+            const jsonData = JSON.stringify(routine, null, 2);
+
+            await FileSystem.writeAsStringAsync(fileUri, jsonData);
+
+            setState(!state);
+            navigation.navigate("HomeScreen");
+
+        } catch (error) {
+            console.error('Error writing file:', error);
+        }
+    }
+
+    const getDate = () => {
+        return "{" + new Date().toLocaleString() + "}"
+    }
     return (
         <View className="px-5 h-full">
 
@@ -255,9 +352,13 @@ export default function StartRoutine({ navigation }) {
                 </TouchableOpacity>
 
                 <View className="flex flex-row items-center">
-                    <Image source={timer} className='w-9 h-9 mr-2' />
+
+                    <TouchableOpacity onPress={() => setShowClok(true)} className="mr-5 w-fit h-fit">
+                        <Image source={timer} className='w-8 h-8' />
+                    </TouchableOpacity>
+
                     <TouchableOpacity className='w-20 rounded-md rounded bg-blue-700 h-8 flex justify-center items-center'
-                        onPress={() => navigation.navigate("AddExercise", { setSelectedExercises })}>
+                        onPress={() => finishWorkout()}>
                         <Text className='text-white font-medium text-base'> Finish </Text>
                     </TouchableOpacity>
                 </View>
@@ -352,22 +453,32 @@ export default function StartRoutine({ navigation }) {
                                                     </TouchableOpacity>
                                                 ) : (
                                                     <View className="flex flex-row items-center">
-                                                        {itemIndex === 1 && <Text className="text-gray-400 font-medium text-sm w-16 mr-12"> 111lbs x 12 </Text>}
+                                                        {itemIndex === 1 && (
+                                                            <Text className="text-gray-400 font-medium text-sm w-16 mr-12">
+                                                                {/* {!pevRoutine
+                                                                    ? "111lbs x 12"
+                                                                    : pevRoutine[index]?.setInfo[innerIndex]?.items[0].value + " lbs x " + pevRoutine[index]?.setInfo[innerIndex]?.items[1].value
+                                                                } */}
+
+                                                                {routine[index]?.setInfo[innerIndex]?.items[0].value + " lbs x " + routine[index]?.setInfo[innerIndex]?.items[1].value}
+                                                            </Text>
+                                                        )}
                                                         <TextInput
                                                             inputMode={itemIndex === 0 ? '' : 'numeric'}
                                                             key={`input-${key}-${itemIndex}`}
                                                             className="text-lg outline:none text-black placeholder:text-gray-400 placeholder:font-medium font-bold w-6 mr-12"
-                                                            placeholder={item.value}
-                                                            defaultValue={item.value !== '-' ? item.value : ''}
+                                                            placeholder={'-'}
+                                                            defaultValue={item.value !== '-'}
                                                             readOnly={itemIndex === 0}
                                                             onChangeText={text => handleInputChange(index, innerIndex, itemIndex, text)}
                                                         />
+                                                        {/* {console.log(pevRoutine[index].setInfo[innerIndex].items[itemIndex])} */}
                                                     </View>
                                                 )}
                                             </View>
                                         ))}
 
-                                        {!state.test[innerIndex] ? (
+                                        {!swipeState.test[innerIndex] ? (
                                             <TouchableOpacity className="flex items-center justify-center ml-3">
                                                 <Checkbox
                                                     key={`input-${key}-${index}`}
@@ -390,17 +501,7 @@ export default function StartRoutine({ navigation }) {
                                 </GestureRecognizer>
 
                             ))}
-
-
                         </View>
-
-
-                        {/* <Button
-                            title="Light"
-                            onPress={
-                                () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                            }
-                        /> */}
 
                         {/* Add set TouchableOpacity */}
                         < TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-2 bg-gray-200'
@@ -448,29 +549,18 @@ export default function StartRoutine({ navigation }) {
                             setTimerRunning(false);
                             setSliderValue(0);
 
-                            const components = selectedTime.split(' ');
-                            let minutes = 0;
-                            let seconds = 0;
-
-                            for (let i = 0; i < components.length; i += 2) {
-                                const value = parseInt(components[i], 10);
-                                const unit = components[i + 1];
-
-                                if (unit === 'min') {
-                                    minutes += value;
-                                } else if (unit === 'sec') {
-                                    seconds += value;
-                                }
-                            }
-
-                            const totalTimeInSeconds = minutes * 60 + seconds;
-                            setTimeRemaining(totalTimeInSeconds);
-                            console.log(totalTimeInSeconds)
+                            setTimeRemaining(convertToSeond(selectedTime.split(' ')));
                         }
 
                     }}
                 />
 
+                <Clock
+                    isOpen={showClock}
+                    onClose={() => {
+                        setShowClok(false);
+                    }}
+                />
             </ScrollView >
 
             {/* The timer countdown */}
@@ -478,12 +568,13 @@ export default function StartRoutine({ navigation }) {
                 <View className="fixed bottom-0 left-0 right-0 bg-white mt-5 mb-5 h-12 border border-blue-700 rounded-md flex flex-row items-center justify-center justify-between px-5">
 
                     <View className="flex flex-col items-center w-full flex-1 mr-5">
-                        <Text className='text-black font-medium text-base'>{formatTime(timeRemaining)}</Text>
+                        <Text className='text-black font-medium text-base'>{formatTime(time)}</Text>
                         <Slider
                             trackStyle={{ height: 8, borderRadius: 4, backgroundColor: '#edf2f7' }}
                             style={{ width: '100%' }}
+                            minimumTrackTintColor='#1565C0'
                             minimumValue={0}
-                            maximumValue={initialTime}
+                            maximumValue={100}
                             value={sliderValue}
                             disabled={true}
                             thumbStyle={{ height: 0, width: 0, backgroundColor: 'green' }}
@@ -498,6 +589,14 @@ export default function StartRoutine({ navigation }) {
 
                 </View>
             )}
+
+            {/* Alerts */}
+            <Alerts
+                visible={isAlertVisible}
+                title="Your Workout Values Are Incomplete"
+                options={alertOptions}
+                onClose={handleAlertClose}
+            />
         </View >
     )
 }

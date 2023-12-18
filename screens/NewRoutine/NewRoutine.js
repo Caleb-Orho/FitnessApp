@@ -78,17 +78,11 @@ export default function NewRoutine({ navigation }) {
     const save = async () => {
         if (routineTitle === "") {
             setAlertVisible(true);
-            // Alert.alert('', 'Enter Routine Title', [
-            //     {
-            //         text: 'Cancel',
-            //         style: 'cancel',
-            //     },
-            // ]);
             return
         }
 
         try {
-            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineTitle + "/";
+            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineTitle.replace(" ", "") + "/";
             const directoryExists = await FileSystem.getInfoAsync(directoryUri);
 
             if (!directoryExists.exists) {
@@ -100,7 +94,7 @@ export default function NewRoutine({ navigation }) {
             const jsonData = JSON.stringify(selectedExercises, null, 2);
 
             await FileSystem.writeAsStringAsync(fileUri, jsonData);
-            
+
             setState(!state);
             navigation.navigate("HomeScreen");
 

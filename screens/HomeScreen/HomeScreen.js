@@ -26,7 +26,6 @@ export default function HomeScreen({ navigation }) {
 
             try {
                 await FileSystem.deleteAsync(directoryUri, { idempotent: true });
-                console.log("Directory deleted successfully");
                 setState(!state)
             } catch (error) {
                 console.error("Error deleting directory:", error);
@@ -107,6 +106,23 @@ export default function HomeScreen({ navigation }) {
         setDelete(!del);
 
     }, [editRoutine == false]);
+
+    useEffect(() => {
+
+        async function listFiles() {
+            try {
+                // const directory = FileSystem.documentDirectory + "/routines/Trash"
+                // const result = await FileSystem.readDirectoryAsync(directory);
+                // console.log(result)
+                // const filePath = `${FileSystem.documentDirectory}/routines/Trash /Trash {2023-12-17, 7:40:22 p.m.}.json`; // Replace with the actual file path you want to delete
+                // await FileSystem.deleteAsync(filePath);
+                // console.log("Doe")
+            } catch (error) {
+                console.error('Error reading directory:', error);
+            }
+        }
+        listFiles();
+    }, [])
 
     return (
         <View className="px-5 h-full">
