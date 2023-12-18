@@ -40,8 +40,6 @@ export default function StartRoutine({ navigation }) {
     const [sliderValue, setSliderValue] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
 
-    const [pevRoutine, setPrevRoutine] = useState()
-
     const [isAlertVisible, setAlertVisible] = useState(false);
 
     const [swipeState, setSwipeState] = useState({
@@ -111,7 +109,6 @@ export default function StartRoutine({ navigation }) {
                     setTime(prevTime)
                     return prevTime > 0 ? prevTime - 1 : 0;
                 });
-                // setSliderValue((prevValue) => Math.max(((initialTime - timeRemaining) / initialTime) * 100, 0));
 
             }, 1000);
         }
@@ -165,11 +162,6 @@ export default function StartRoutine({ navigation }) {
 
                     // Set the state with the content of the last file
                     setRoutine(lastFileData);
-
-                    const file = FileSystem.documentDirectory + "/routines/Trash/Trash{2023-12-17, 11:38:55 p.m.}.json"
-                    const lastData = await FileSystem.readAsStringAsync(directoryUri + files[1], { encoding: FileSystem.EncodingType.UTF8, });
-                    const Data = JSON.parse(lastData);
-                    // setPrevRoutine(Data)
                 } catch (error) {
                     console.error('Error reading last file:', error);
                 }
@@ -515,7 +507,7 @@ export default function StartRoutine({ navigation }) {
                 }
 
                 {/* Add exercise TouchableOpacity */}
-                <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 bg-blue-700'
+                <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 mb-5 bg-blue-700'
                     onPress={() => {
                         navigation.navigate("AddExercise", { setSelectedExercises: setRoutine, screenName: 'StartRoutine' }),
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)

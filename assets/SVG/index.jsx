@@ -30,7 +30,7 @@ export { default as timer } from "./timer.png";
 export { default as trash } from "./trash.png";
 export { default as remove } from "./remove.png";
 export { default as repeat } from "./repeat.png";
-
+export { default as backButton } from "./backButton.png";
 
 
 

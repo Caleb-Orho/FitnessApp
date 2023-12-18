@@ -175,7 +175,8 @@ export default function HomeScreen({ navigation }) {
 
             {expandMyRoutine &&
                 Object.keys(routine).map((index) => (
-                    <View key={index} className="rounded-md border-[1px] border-gray-200 mt-5">
+                    <TouchableOpacity key={index} className="rounded-md border-[1px] border-gray-200 mt-5"
+                        onPress={() => navigation.navigate('RoutineHistory', { routineName: routineName[index] })}>
 
                         <View className="flex flex-row justify-between px-5 mt-3">
                             <Text className='text-black font-bold'>
@@ -212,7 +213,7 @@ export default function HomeScreen({ navigation }) {
                             </View>
                         </View>
 
-                    </View>
+                    </TouchableOpacity>
                 ))
             }
 

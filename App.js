@@ -10,6 +10,9 @@ import AddExercise from './screens/AddExercise/AddExercise'
 import StartRoutine from './screens/StartRoutine/StartRoutine'
 import ReplaceExercise from './screens/NewRoutine/ReplaceExercise'
 
+import RoutineData from './screens/RoutineData/RoutineData'
+import RoutineHistory from './screens/RoutineData/RoutineHistory'
+
 import { createContext, useState } from 'react';
 
 const Stack = createNativeStackNavigator();
@@ -45,6 +48,8 @@ export default function App() {
           <Stack.Screen name="StartRoutine" component={StartRoutine} />
           <Stack.Screen name="ReplaceExercise" component={ReplaceExercise} />
           <Stack.Screen name="EditRotine" component={EditRotine} />
+          <Stack.Screen name="RoutineData" component={RoutineData} />
+          <Stack.Screen name="RoutineHistory" component={RoutineHistory} />
         </Stack.Navigator>
       </NavigationContainer>
     </AppContext.Provider>
