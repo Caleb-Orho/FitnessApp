@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react'
 import { TouchableOpacity, View, Text, TextInput, Image, ScrollView } from 'react-native'
-import { search } from "../../assets/SVG";
+import { search } from "../../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
 
-import bicepExercises from "../../assets/Exercises/Biceps";
-import AllEquipment from '../AddExercise/Equipment';
-import AllMuscle from '../AddExercise/Muscle';
+import bicepExercises from "../../../assets/Exercises/Biceps";
+import chestExercises from '../../../assets/Exercises/Chest';
+import tricepExercises from '../../../assets/Exercises/Tricept';
+import shoulderExercises from '../../../assets/Exercises/Shoulder';
+import backExercises from '../../../assets/Exercises/Back';
 
-export default function ReplaceExercise({ navigation }) {
+import AllEquipment from './Equipment';
+import AllMuscle from './Muscle';
+
+export default function AddExercise({ navigation }) {
 
     const route = useRoute();
     const [searchQuery, setSearchQuery] = useState('');
     const [targetedMuscle, setTargetedMuscle] = useState('All Muscles');
     const [equipment, setEquipment] = useState('All Equipment');
     const [filteredExercises, setFilteredExercises] = useState([]);
+    //const [localSelectedExercises, setLocalSelectedExercises] = useState([]);
     const [openAllEquipment, setOpenAllEquipment] = useState(false);
     const [openAllMuscle, setOpenAllMuscle] = useState(false);
-    const allExercises = [...bicepExercises];
+    const allExercises = [...bicepExercises, ...chestExercises, ...tricepExercises, ...shoulderExercises, ...backExercises];
 
     const { setSelectedExercises } = route.params;
-    const { replaceIndex } = route.params;
+    const { screenName } = route.params;
 
-    const [localSelectedExercises] = useState([]);
+    const [localSelectedExercises, setLocalSelectedExercises] = useState([]);
 
     useEffect(() => {
         const filteredExercises = allExercises
@@ -49,9 +55,21 @@ export default function ReplaceExercise({ navigation }) {
 
     }, [targetedMuscle, equipment, searchQuery]);
 
-    const replaceExercise = (index) => {
-        const selectedExerciseDetails = (() => {
-            const { name, photoLink } = allExercises[index];
+    const handleExerciseClick = (index) => {
+        // Check if the exercise is already selected
+        if (localSelectedExercises.includes(index)) {
+            // Remove the exercise from the selected list
+            setLocalSelectedExercises(localSelectedExercises.filter((item) => item !== index));
+            // setSelectedExercisesSend(localSelectedExercises.map(selectedIndex => allExercises[selectedIndex]));
+        } else {
+            // Add the exercise to the selected list
+            setLocalSelectedExercises(prevSelected => [...prevSelected, index]);
+        }
+    };
+
+    const handleAdd = () => {
+        const selectedExerciseDetails = localSelectedExercises.map(selectedIndex => {
+            const { name, photoLink } = allExercises[selectedIndex];
             const uniqueSetInfo = [
                 {
                     items: [
@@ -70,10 +88,16 @@ export default function ReplaceExercise({ navigation }) {
             ];
 
             return { name, photoLink, setInfo: uniqueSetInfo };
-        })();
+        });
 
-        setSelectedExercises(prevSelectedExercises => prevSelectedExercises.map((item, i) => i === replaceIndex ? selectedExerciseDetails : item));
-        navigation.goBack();
+        setSelectedExercises(prevSelectedExercises => [
+            ...prevSelectedExercises,
+            ...selectedExerciseDetails
+        ]);
+
+
+        //navigation.navigate("NewRoutine")
+        navigation.goBack()
     }
 
     return (
@@ -86,7 +110,7 @@ export default function ReplaceExercise({ navigation }) {
                 </TouchableOpacity>
 
                 <Text className='text-lg font-bold flex item-center justify-center'>
-                    Replace Exercise
+                    Add Exercise
                 </Text>
 
                 <TouchableOpacity className="" onPress={() => ''}>
@@ -127,9 +151,9 @@ export default function ReplaceExercise({ navigation }) {
                     filteredExercises.map((exercise, index) => (
                         <View key={index}>
                             <TouchableOpacity className="w-full flex flex-row items-center"
-                                onPress={() => replaceExercise(index)}>
+                                onPress={() => handleExerciseClick(index)}>
                                 <View className={`border-l-4 ${localSelectedExercises.includes(index) ? 'border-blue-700 ml-5 mr-2 h-14' : ''} rounded`} />
-                                <Image source={{ uri: exercise.photoLink }} className="w-14 h-14 rounded-full" />
+                                <Image source={exercise.photoLink} className="w-14 h-14 rounded-full" />
                                 <View className="flex flex-col items-start ml-5">
                                     <Text className="text-black text-base font-semibold">{exercise.name}</Text>
                                     <Text className="text-gray-400 text-sm">{exercise.targetMuscle}</Text>

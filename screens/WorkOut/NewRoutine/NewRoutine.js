@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { TouchableOpacity, View, Text, TextInput, Image, ScrollView, Alert } from 'react-native'
+import { TouchableOpacity, View, Text, TextInput, Image, ScrollView } from 'react-native'
 import * as FileSystem from 'expo-file-system';
-import { add2, dumbell, threedots, timer, trash } from "../../assets/SVG";
-import { useRoute } from '@react-navigation/native';
-import EditSet from '../../Components/Utils/EditSet';
-import Alerts from '../../Components/Utils/Alerts';
-import TimePicker from '../../Components/Utils/TimePicker';
-import { AppContext } from '../../App';
+import { add2, dumbell, threedots, timer, trash } from "../../../assets/SVG";
+import EditSet from '../../../Components/Utils/EditSet';
+import Alerts from '../../../Components/Utils/Alerts';
+import TimePicker from '../../../Components/Utils/TimePicker';
+import { AppContext } from '../../../App';
 
-export default function EditRotine({ navigation }) {
+export default function NewRoutine({ navigation }) {
 
     const { setState, state } = useContext(AppContext);
-    const route = useRoute();
-    const { routineName } = route.params;
+
     const [routineTitle, setRoutineTitle] = useState('');
     const [selectedExercises, setSelectedExercises] = useState([]);
     const [key, setKey] = useState(0);
@@ -29,34 +27,6 @@ export default function EditRotine({ navigation }) {
     const [setEditIndex, setSetEditIndex] = useState([-1, -1]); // This is for when we want to edit a set, so the editset sets the selected button based off index.
 
     const [isAlertVisible, setAlertVisible] = useState(false);
-
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                const file = FileSystem.documentDirectory + "/routines/" + routineName + "/" + routineName + ".json";
-
-                try {
-                    // Read the file
-                    const jsonData = await FileSystem.readAsStringAsync(file, {
-                        encoding: FileSystem.EncodingType.UTF8,
-                    });
-
-                    // Parse the JSON data
-                    const routine = JSON.parse(jsonData);
-                    setSelectedExercises(routine);
-                } catch (error) {
-                    console.error(`Error reading file ${file}:`, error);
-                    return null; // In case of an error, you might want to handle it differently 
-                }
-
-            } catch (error) {
-                console.error('Error reading directory:', error);
-            }
-        };
-
-        setRoutineTitle(routineName)
-        loadData();
-    }, []);
 
     const handleAlertClose = () => {
         setAlertVisible(false);
@@ -112,7 +82,7 @@ export default function EditRotine({ navigation }) {
         }
 
         try {
-            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineTitle + "/";
+            const directoryUri = FileSystem.documentDirectory + "/routines/" + routineTitle.replace(" ", "") + "/";
             const directoryExists = await FileSystem.getInfoAsync(directoryUri);
 
             if (!directoryExists.exists) {
@@ -120,7 +90,7 @@ export default function EditRotine({ navigation }) {
                 await FileSystem.makeDirectoryAsync(directoryUri);
             }
 
-            const fileUri = directoryUri + routineTitle + '.json';
+            const fileUri = directoryUri + routineTitle.replace(" ", "") + '.json';
             const jsonData = JSON.stringify(selectedExercises, null, 2);
 
             await FileSystem.writeAsStringAsync(fileUri, jsonData);
@@ -181,7 +151,7 @@ export default function EditRotine({ navigation }) {
                 </TouchableOpacity>
 
                 <Text className='text-lg font-bold flex item-center justify-center'>
-                    Edit Routine
+                    Create Routine
                 </Text>
 
                 <TouchableOpacity className="" onPress={() => {
@@ -199,12 +169,17 @@ export default function EditRotine({ navigation }) {
                 <View className='mt-5 w-full'>
                     <View className='flex flex-row jusitfy-between'>
                         <TextInput
-                            className={"outline-none text-black font-bold placeholder:text-black placeholder:text-lg placeholder:font-medium text-lg leading-6 w-full flex-1"}
+                            className={"outline-none text-black font-bold placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium text-lg leading-6 w-full flex-1"}
                             value={routineTitle}
                             onChangeText={text => setRoutineTitle(text)}
                             placeholder="Routine title"
-                            editable={false}
                         />
+
+                        {routineTitle !== '' && (
+                            <TouchableOpacity className="" onPress={() => setRoutineTitle('')}>
+                                <Text className='text-gray-400 font-medium text-lg'> Clear </Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                     <View className="border-[1px] border-gray-200 mt-2" />
                 </View>
@@ -226,7 +201,7 @@ export default function EditRotine({ navigation }) {
                         <View className="flex flex-row items-center justify-between">
                             <TouchableOpacity className="flex flex-row gap-3 items-center"
                                 onPress={() => handleExerciseClick(exercise)}>
-                                <Image source={{ uri: exercise.photoLink }} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
+                                <Image source={exercise.photoLink} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
                                 <Text className="flex flex-col items-start text-blue-700 text-lg font-bold">{exercise.name}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => {
@@ -310,7 +285,7 @@ export default function EditRotine({ navigation }) {
                 ))}
 
                 {/* Add exercise TouchableOpacity */}
-                <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md bg-blue-700'
+                <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-2 bg-blue-700'
                     onPress={() => navigation.navigate("AddExercise", { setSelectedExercises })}>
                     <Image source={add2} className='w-10 h-9 mr-2' />
                     <Text className='text-white font-medium text-base'>Add exercise</Text>

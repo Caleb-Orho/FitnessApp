@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react'
 import { TouchableOpacity, View, Text, TextInput, Image, ScrollView } from 'react-native'
-import { search } from "../../assets/SVG";
+import { search } from "../../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
 
-import bicepExercises from "../../assets/Exercises/Biceps";
-import AllEquipment from './Equipment';
-import AllMuscle from './Muscle';
+import bicepExercises from "../../../assets/Exercises/Biceps";
+import AllEquipment from '../AddExercise/Equipment';
+import AllMuscle from '../AddExercise/Muscle';
 
-export default function AddExercise({ navigation }) {
+export default function ReplaceExercise({ navigation }) {
 
     const route = useRoute();
     const [searchQuery, setSearchQuery] = useState('');
     const [targetedMuscle, setTargetedMuscle] = useState('All Muscles');
     const [equipment, setEquipment] = useState('All Equipment');
     const [filteredExercises, setFilteredExercises] = useState([]);
-    //const [localSelectedExercises, setLocalSelectedExercises] = useState([]);
     const [openAllEquipment, setOpenAllEquipment] = useState(false);
     const [openAllMuscle, setOpenAllMuscle] = useState(false);
     const allExercises = [...bicepExercises];
 
     const { setSelectedExercises } = route.params;
-    const { screenName } = route.params;
+    const { replaceIndex } = route.params;
 
-    const [localSelectedExercises, setLocalSelectedExercises] = useState([]);
+    const [localSelectedExercises] = useState([]);
 
     useEffect(() => {
         const filteredExercises = allExercises
@@ -50,21 +49,9 @@ export default function AddExercise({ navigation }) {
 
     }, [targetedMuscle, equipment, searchQuery]);
 
-    const handleExerciseClick = (index) => {
-        // Check if the exercise is already selected
-        if (localSelectedExercises.includes(index)) {
-            // Remove the exercise from the selected list
-            setLocalSelectedExercises(localSelectedExercises.filter((item) => item !== index));
-            // setSelectedExercisesSend(localSelectedExercises.map(selectedIndex => allExercises[selectedIndex]));
-        } else {
-            // Add the exercise to the selected list
-            setLocalSelectedExercises(prevSelected => [...prevSelected, index]);
-        }
-    };
-
-    const handleAdd = () => {
-        const selectedExerciseDetails = localSelectedExercises.map(selectedIndex => {
-            const { name, photoLink } = allExercises[selectedIndex];
+    const replaceExercise = (index) => {
+        const selectedExerciseDetails = (() => {
+            const { name, photoLink } = allExercises[index];
             const uniqueSetInfo = [
                 {
                     items: [
@@ -83,16 +70,10 @@ export default function AddExercise({ navigation }) {
             ];
 
             return { name, photoLink, setInfo: uniqueSetInfo };
-        });
+        })();
 
-        setSelectedExercises(prevSelectedExercises => [
-            ...prevSelectedExercises,
-            ...selectedExerciseDetails
-        ]);
-
-
-        //navigation.navigate("NewRoutine")
-        navigation.goBack()
+        setSelectedExercises(prevSelectedExercises => prevSelectedExercises.map((item, i) => i === replaceIndex ? selectedExerciseDetails : item));
+        navigation.goBack();
     }
 
     return (
@@ -105,7 +86,7 @@ export default function AddExercise({ navigation }) {
                 </TouchableOpacity>
 
                 <Text className='text-lg font-bold flex item-center justify-center'>
-                    Add Exercise
+                    Replace Exercise
                 </Text>
 
                 <TouchableOpacity className="" onPress={() => ''}>
@@ -146,7 +127,7 @@ export default function AddExercise({ navigation }) {
                     filteredExercises.map((exercise, index) => (
                         <View key={index}>
                             <TouchableOpacity className="w-full flex flex-row items-center"
-                                onPress={() => handleExerciseClick(index)}>
+                                onPress={() => replaceExercise(index)}>
                                 <View className={`border-l-4 ${localSelectedExercises.includes(index) ? 'border-blue-700 ml-5 mr-2 h-14' : ''} rounded`} />
                                 <Image source={{ uri: exercise.photoLink }} className="w-14 h-14 rounded-full" />
                                 <View className="flex flex-col items-start ml-5">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { TouchableOpacity, View, Text, ScrollView, Image } from 'react-native'
 import { useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
-import { backButton } from "../../assets/SVG";
+import { backButton } from "../../../assets/SVG";
 
 export default function RoutineHistory({ navigation }) {
     const route = useRoute();
@@ -79,16 +79,33 @@ export default function RoutineHistory({ navigation }) {
                     <Image source={backButton} className='w-7 h-6' />
                 </TouchableOpacity>
 
-                <TouchableOpacity className="" onPress={() => navigation.navigate("HomeScreen")}>
-                    <Text className='text-black font-semibold text-lg'> {routineName} </Text>
-                </TouchableOpacity>
-
+                <Text className='text-black font-semibold text-lg'> Routine </Text>
             </View>
 
             <View className="border-[1px] border-gray-300 mt-4" />
 
+            <Text className='text-black font-semibold text-lg mt-4'> {routineName} </Text>
+
+            <Text className="text-base font-semibold text-gray-400">
+                Created by you
+            </Text>
+
+            {/* Start Routine Button */}
+            <View className='rounded w-full mt-2'>
+                <TouchableOpacity className='w-full rounded-lg flex items-center justify-center rounded bg-blue-700 h-10'
+                    onPress={() => navigation.navigate('StartRoutine', { routineName: routineName })}>
+                    <Text className='text-white font-medium text-sm'> Start Routine </Text>
+                </TouchableOpacity>
+            </View>
+
+            <View className='w-full items-center justify-center mt-5'>
+                <Text className="text-base font-semibold text-gray-400">
+                    {routineName} History
+                </Text>
+            </View>
+
             <ScrollView className="gap-y-4 mt-3">
-                {files ? (
+                {files && files.length > 1 ? (
                     files.map((fileName, index) => {
 
                         const { name, date } = splitFileName(fileName);
@@ -105,7 +122,10 @@ export default function RoutineHistory({ navigation }) {
                         );
                     })
                 ) : (
-                    <Text>Loading files...</Text>
+                    <View className="w-full items-center justify-center">
+                        <Text className="text-base font-semibold text-gray-400"> No routine history to show </Text>
+                    </View>
+
                 )}
             </ScrollView>
 

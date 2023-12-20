@@ -67,6 +67,10 @@ const gymEquipment = {
         name: 'Accessories',
         photoLink: 'https://i.pinimg.com/564x/77/3e/8f/773e8ff089051161de014d7e84ea58df.jpg',
     },
+    accessories: {
+        name: 'Ez Bar',
+        photoLink: 'https://i.pinimg.com/564x/77/3e/8f/773e8ff089051161de014d7e84ea58df.jpg',
+    },
 };
 
 export default gymEquipment;

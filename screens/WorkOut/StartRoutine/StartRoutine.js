@@ -1,26 +1,29 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { TouchableOpacity, View, Text, Image, TextInput, ScrollView } from 'react-native'
-import { threedots, timer, trash, add2 } from "../../assets/SVG";
+import { threedots, timer, trash, add2 } from "../../../assets/SVG";
 import { useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import Checkbox from 'expo-checkbox';
-import EditSet from '../../Components/Utils/EditSet';
-import TimePicker from '../../Components/Utils/TimePicker';
-import Clock from '../../Components/Utils/Clock';
+import EditSet from '../../../Components/Utils/EditSet';
+import TimePicker from '../../../Components/Utils/TimePicker';
+import Clock from '../../../Components/Utils/Clock';
 import Slider from 'react-native-slider'
 import GestureRecognizer from 'react-native-swipe-gestures';
 import * as Haptics from 'expo-haptics';
-import Alerts from '../../Components/Utils/Alerts';
-import { AppContext } from '../../App';
+import Alerts from '../../../Components/Utils/Alerts';
+import { AppContext } from '../../../App';
 
 export default function StartRoutine({ navigation }) {
     const [initialTime, setInitalTime] = useState(0)
 
     const { setState, state } = useContext(AppContext);
 
+    const [alertText, setAlertText] = useState()
+
     const route = useRoute();
     const { routineName } = route.params;
     const [routine, setRoutine] = useState([])
+    const [prevRoutinee, setPrevRoutinee] = useState([])
     const [key] = useState(0);
     const [list] = useState(['W', 'F', 'D', 3]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -36,12 +39,13 @@ export default function StartRoutine({ navigation }) {
     });
     const [exerciseRestTimes, setExerciseRestTimes] = useState({}); // New state to store rest times for each exercise
     const [time, setTime] = useState(initialTime)
-    const [setTimeRemaining] = useState(initialTime);
+    const [remainingTime, setTimeRemaining] = useState(initialTime);
     const [sliderValue, setSliderValue] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
 
     const [isAlertVisible, setAlertVisible] = useState(false);
 
+    const [empty, setEmpty] = useState(0)
     const [swipeState, setSwipeState] = useState({
         myText: 'I\'m ready to get swiped!',
         gestureName: 'none',
@@ -56,12 +60,18 @@ export default function StartRoutine({ navigation }) {
         }));
     };
 
-    const [alertOptions] = useState([
+    const [alertOptions, setAlertOptions] = useState([
         { value: '1', label: 'Ok' },
-        // Add more default options if needed
     ]);
 
-    const handleAlertClose = () => {
+    const newOptions = [
+        { value: '1', label: 'Yes' },
+        { value: '2', label: 'Cancel' },
+    ];
+
+    const handleAlertClose = (option) => {
+        if (option == 1)
+            navigation.navigate("HomeScreen")
         setAlertVisible(false);
     };
 
@@ -152,7 +162,7 @@ export default function StartRoutine({ navigation }) {
 
                 // Read file
                 const files = await FileSystem.readDirectoryAsync(directoryUri);
-                console.log(files)
+                
                 try {
                     const jsonData = await FileSystem.readAsStringAsync(directoryUri + files[0], {
                         encoding: FileSystem.EncodingType.UTF8,
@@ -160,8 +170,24 @@ export default function StartRoutine({ navigation }) {
 
                     const lastFileData = JSON.parse(jsonData);
 
-                    // Set the state with the content of the last file
-                    setRoutine(lastFileData);
+                    // Create a modified version with values set to "-"
+                    const modifiedData = lastFileData.map((exercise) => ({
+                        ...exercise,
+                        setInfo: exercise.setInfo.map((set) => ({
+                            ...set,
+                            items: set.items.map((item, itemIndex) => ({
+                                ...item,
+                                value: (itemIndex === 0) ? item.value : "-"
+                            }))
+                        }))
+                    }));
+
+                    // Set the state with the modified version
+                    setRoutine([...modifiedData]);
+
+                    // Set the state with the non-modified version
+                    setPrevRoutinee([...lastFileData]);
+
                 } catch (error) {
                     console.error('Error reading last file:', error);
                 }
@@ -172,22 +198,6 @@ export default function StartRoutine({ navigation }) {
 
         loadData();
     }, []);
-
-    // useEffect(() => {
-    //     async function listFiles() {
-    //         try {
-    // const file = FileSystem.documentDirectory + "/routines/Trash/Trash{2023-12-17, 11:38:55 p.m.}.json"
-    // const jsonData = await FileSystem.readAsStringAsync(file, { encoding: FileSystem.EncodingType.UTF8, });
-    // const Data = JSON.parse(jsonData);
-    //             // setPrevRoutine(Data)
-
-    //             console.log(lastFileData);
-    //         } catch (error) {
-    //             console.error('Error reading directory:', error);
-    //         }
-    //     }
-    //     listFiles();
-    // }, [])
 
     const removeItem = (indexToRemove) => {
         setRoutine(prevRoutine => prevRoutine.filter((_, index) => index !== indexToRemove));
@@ -302,6 +312,10 @@ export default function StartRoutine({ navigation }) {
             for (const set of exercise.setInfo) {
                 for (const item of set.items) {
                     if (item.value === '' || item.value === '-') {
+                        setAlertOptions([
+                            { value: '2', label: 'Ok' },
+                        ]);
+                        setAlertText("Your Workout Values Are Incomplete")
                         setAlertVisible(true);
                         return true;
                     }
@@ -334,12 +348,17 @@ export default function StartRoutine({ navigation }) {
     const getDate = () => {
         return "{" + new Date().toLocaleString() + "}"
     }
+
+    useEffect(() => {
+        setEmpty(prev => prev + 1);
+    }, []);
+
     return (
         <View className="px-5 h-full">
 
             {/* Header */}
             <View className='w-full flex items-center justify-center justify-between flex-row mt-14'>
-                <TouchableOpacity className="" onPress={() => navigation.navigate("HomeScreen")}>
+                <TouchableOpacity className="">
                     <Text className='text-black font-semibold text-lg'> Log Workout </Text>
                 </TouchableOpacity>
 
@@ -447,12 +466,7 @@ export default function StartRoutine({ navigation }) {
                                                     <View className="flex flex-row items-center">
                                                         {itemIndex === 1 && (
                                                             <Text className="text-gray-400 font-medium text-sm w-16 mr-12">
-                                                                {/* {!pevRoutine
-                                                                    ? "111lbs x 12"
-                                                                    : pevRoutine[index]?.setInfo[innerIndex]?.items[0].value + " lbs x " + pevRoutine[index]?.setInfo[innerIndex]?.items[1].value
-                                                                } */}
-
-                                                                {routine[index]?.setInfo[innerIndex]?.items[0].value + " lbs x " + routine[index]?.setInfo[innerIndex]?.items[1].value}
+                                                                {prevRoutinee[index]?.setInfo[innerIndex]?.items[0].value + " lbs x " + prevRoutinee[index]?.setInfo[innerIndex]?.items[1].value}
                                                             </Text>
                                                         )}
                                                         <TextInput
@@ -507,13 +521,19 @@ export default function StartRoutine({ navigation }) {
                 }
 
                 {/* Add exercise TouchableOpacity */}
-                <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 mb-5 bg-blue-700'
+                <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-5 mb-2 bg-blue-700'
                     onPress={() => {
                         navigation.navigate("AddExercise", { setSelectedExercises: setRoutine, screenName: 'StartRoutine' }),
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                     }}>
                     <Image source={add2} className='w-10 h-9 mr-2' />
                     <Text className='text-white font-medium text-base'>Add exercise</Text>
+                </TouchableOpacity>
+
+                {/* Discard */}
+                <TouchableOpacity className='border-[2px] border-gray-200 flex items-center justify-center flex-row rounded-md mb-5 h-9'
+                    onPress={() => { setAlertText("Are you sure you want to discard this workout?"), setAlertOptions(newOptions), setAlertVisible(true) }}>
+                    <Text className='text-red-700 font-medium text-base'> Discard Workout </Text>
                 </TouchableOpacity>
 
                 <EditSet
@@ -585,7 +605,7 @@ export default function StartRoutine({ navigation }) {
             {/* Alerts */}
             <Alerts
                 visible={isAlertVisible}
-                title="Your Workout Values Are Incomplete"
+                title={alertText}
                 options={alertOptions}
                 onClose={handleAlertClose}
             />

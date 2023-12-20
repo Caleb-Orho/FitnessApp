@@ -29,20 +29,18 @@ const Alerts = ({ visible, title, options, onClose }) => {
                     </Text>
 
 
-                    <View className="flex flex-row items-center justify-center w-full gap-20">
+                    <View className="flex flex-row items-center justify-center justify-between w-full ">
                         {options.map((option) => (
                             <TouchableOpacity
                                 key={option.value}
                                 onPress={() => onClose(option.value)}
-                                class="flex-row items-center"
+                                className="flex-row items-center"
                             >
-                                <Text className='text-blue-700 font-medium text-lg'>
+                                <Text className='text-blue-700 font-medium text-lg w-12 h-7'>
                                     {option.label}
                                 </Text>
                             </TouchableOpacity>
-
                         ))}
-
                     </View>
 
                 </View>

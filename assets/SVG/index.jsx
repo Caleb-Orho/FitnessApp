@@ -31,11 +31,10 @@ export { default as trash } from "./trash.png";
 export { default as remove } from "./remove.png";
 export { default as repeat } from "./repeat.png";
 export { default as backButton } from "./backButton.png";
-
-
-
-
-
-
+export { default as profile } from "./profile.png";
+export { default as gear } from "./gear.png";
+export { default as leftNav } from "./leftNav.png";
+export { default as about } from "./about.png";
+export { default as lock } from "./lock.png";
 
 

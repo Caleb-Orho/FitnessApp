@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { TouchableOpacity, View, Text, Image, TextInput, ScrollView } from 'react-native'
 import { useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
-import { backButton } from "../../assets/SVG";
+import { backButton } from "../../../assets/SVG";
 
 export default function RoutineData({ navigation }) {
 
@@ -75,10 +75,8 @@ export default function RoutineData({ navigation }) {
                     <Image source={backButton} className='w-7 h-6' />
                 </TouchableOpacity>
 
-                <TouchableOpacity className="" onPress={() => navigation.navigate("HomeScreen")}>
-                    <Text className='text-black font-semibold text-lg'> Workout Log </Text>
-                </TouchableOpacity>
 
+                <Text className='text-black font-semibold text-lg'> Workout Log </Text>
             </View>
 
             <View className="border-[1px] border-gray-300 mt-4" />
@@ -87,14 +85,13 @@ export default function RoutineData({ navigation }) {
                 {/* The Volume and Sets */}
                 <View className='flex items-center flex-row gap-x-16 mt-5'>
 
-
                     <View className='flex flex-col'>
-                        <Text className='text-sm font-medium text-gray-400'>Volume</Text>
+                        <Text className='text-sm font-medium text-gray-400'>Total Volume</Text>
                         <Text className='text-lg text-black font-semibold'> {Volume} </Text>
                     </View>
 
                     <View className='flex flex-col'>
-                        <Text className='text-sm font-medium text-gray-400'>Sets</Text>
+                        <Text className='text-sm font-medium text-gray-400'>Total Sets</Text>
                         <Text className='text-lg text-black font-semibold'> {setNumber} </Text>
                     </View>
                 </View>

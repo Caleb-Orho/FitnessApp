@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { TouchableOpacity, View, Text, Image } from 'react-native'
-import { note, add, magnifyingglass, triangleright, threedots } from "../../assets/SVG";
-import { AppContext } from '../../App';
-import EditRotineOptions from '../../Components/Utils/EditRotineOptions';
-import Alerts from '../../Components/Utils/Alerts';
+import { TouchableOpacity, View, Text, Image, ScrollView } from 'react-native'
+import { note, add, magnifyingglass, triangleright, threedots } from "../../../assets/SVG";
+import { AppContext } from '../../../App';
+import EditRotineOptions from '../../../Components/Utils/EditRotineOptions';
+import Alerts from '../../../Components/Utils/Alerts';
 import * as FileSystem from 'expo-file-system';
+import Footer from '../../../Components/Utils/Footer';
 
 export default function HomeScreen({ navigation }) {
 
@@ -65,7 +66,6 @@ export default function HomeScreen({ navigation }) {
                         }
                     })
                 );
-
                 // Set the state with the combined data from all files
                 setRoutine(allData);
             } catch (error) {
@@ -74,6 +74,7 @@ export default function HomeScreen({ navigation }) {
         };
 
         const createDir = async () => {
+
             try {
                 const routinesDirectory = FileSystem.documentDirectory + "/routines/";
                 const routinesDirectoryInfo = await FileSystem.getInfoAsync(routinesDirectory);
@@ -86,6 +87,7 @@ export default function HomeScreen({ navigation }) {
                 console.error('Error checking/creating routines directory:', error);
             }
         };
+
 
         createDir();
         loadData();
@@ -111,10 +113,10 @@ export default function HomeScreen({ navigation }) {
 
         async function listFiles() {
             try {
-                // const directory = FileSystem.documentDirectory + "/routines/Trash"
+                // const directory = FileSystem.documentDirectory + '/Workout'
                 // const result = await FileSystem.readDirectoryAsync(directory);
                 // console.log(result)
-                // const filePath = `${FileSystem.documentDirectory}/routines/Trash /Trash {2023-12-17, 7:40:22 p.m.}.json`; // Replace with the actual file path you want to delete
+                // const filePath = `${FileSystem.documentDirectory}/routines/Test2`; 
                 // await FileSystem.deleteAsync(filePath);
                 // console.log("Doe")
             } catch (error) {
@@ -139,7 +141,8 @@ export default function HomeScreen({ navigation }) {
             </Text>
 
             {/* Start Empty Workout TouchableOpacity */}
-            <TouchableOpacity className='border-[1px] border-gray-200 flex items-center flex-row rounded-md mt-5'>
+            <TouchableOpacity className='border-[1px] border-gray-200 flex items-center flex-row rounded-md mt-5'
+                onPress={() => navigation.navigate('EmptyWorkout', { routineName: '' })}>
                 <Image source={add} className='w-10 h-9 mr-2' />
                 <Text className='text-black font-medium text-sm'>Start Empty Workout</Text>
             </TouchableOpacity>
@@ -173,50 +176,52 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
             </View>
 
-            {expandMyRoutine &&
-                Object.keys(routine).map((index) => (
-                    <TouchableOpacity key={index} className="rounded-md border-[1px] border-gray-200 mt-5"
-                        onPress={() => navigation.navigate('RoutineHistory', { routineName: routineName[index] })}>
+            <ScrollView>
+                {expandMyRoutine &&
+                    Object.keys(routine).map((index) => (
+                        <TouchableOpacity key={index} className="rounded-md border-[1px] border-gray-200 mt-5"
+                            onPress={() => navigation.navigate('RoutineHistory', { routineName: routineName[index] })}>
 
-                        <View className="flex flex-row justify-between px-5 mt-3">
-                            <Text className='text-black font-bold'>
-                                {routineName[index]}
-                            </Text>
+                            <View className="flex flex-row justify-between px-5 mt-3">
+                                <Text className='text-black font-bold'>
+                                    {routineName[index]}
+                                </Text>
 
-                            <TouchableOpacity onPress={() => {
-                                setEditRoutine(!editRoutine)
-                                setSetEditIndex(previousIndex => [previousIndex[0], index])
-                                // setRoutineName(routineName[index])
-                            }}>
-                                <Image source={threedots} className='rotate-90 w-7 h-7' alt="add" />
-                            </TouchableOpacity>
-
-                        </View>
-
-                        <View className='px-5 mt-1 mb-3'>
-                            <View className="flex flex-row truncate ">
-                                {routine[index].map((exercise, exerciseIndex) => (
-
-                                    <React.Fragment key={exerciseIndex}>
-                                        <Text className="text-base font-semibold text-gray-400">{exercise.name}
-                                            {exerciseIndex !== routine[index].length - 1 && <Text>, </Text>}
-                                        </Text>
-                                    </React.Fragment>
-                                ))}
-                            </View>
-
-                            <View className='rounded w-full mt-2'>
-                                <TouchableOpacity className='w-full rounded-lg flex items-center justify-center rounded bg-blue-700 h-8'
-                                    onPress={() => navigation.navigate('StartRoutine', { routineName: routineName[index] })}>
-                                    <Text className='text-white font-medium text-sm'> Start Routine </Text>
+                                <TouchableOpacity onPress={() => {
+                                    setEditRoutine(!editRoutine)
+                                    setSetEditIndex(previousIndex => [previousIndex[0], index])
+                                    // setRoutineName(routineName[index])
+                                }}>
+                                    <Image source={threedots} className='rotate-90 w-7 h-7' alt="add" />
                                 </TouchableOpacity>
+
                             </View>
-                        </View>
 
-                    </TouchableOpacity>
-                ))
-            }
+                            <View className='px-5 mt-1 mb-3'>
+                                <View className="flex flex-row truncate ">
+                                    {routine[index].map((exercise, exerciseIndex) => (
 
+                                        <React.Fragment key={exerciseIndex}>
+                                            <Text className="text-base font-semibold text-gray-400">{exercise.name}
+                                                {exerciseIndex !== routine[index].length - 1 && <Text>, </Text>}
+                                            </Text>
+                                        </React.Fragment>
+                                    ))}
+                                </View>
+
+                                <View className='rounded w-full mt-2'>
+                                    <TouchableOpacity className='w-full rounded-lg flex items-center justify-center rounded bg-blue-700 h-8'
+                                        onPress={() => navigation.navigate('StartRoutine', { routineName: routineName[index] })}>
+                                        <Text className='text-white font-medium text-sm'> Start Routine </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                        </TouchableOpacity>
+                    ))
+                }
+
+            </ScrollView>
 
             <EditRotineOptions
                 isOpen={editRoutine}
@@ -235,6 +240,10 @@ export default function HomeScreen({ navigation }) {
                 options={alertOptions}
                 onClose={handleAlertClose}
             />
+
+
+            <Footer />
+
         </View>
     )
 }
