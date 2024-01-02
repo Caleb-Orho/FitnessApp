@@ -7,7 +7,7 @@ import { AppContext } from '../../../App';
 
 const ProfileHome = ({ navigation }) => {
 
-    const { user } = useContext(AppContext);
+    const { user, workouts } = useContext(AppContext);
 
     return (
         <View className="px-5 h-full">
@@ -46,7 +46,7 @@ const ProfileHome = ({ navigation }) => {
 
                     <View className="flex justify-center">
                         <Text className='text-gray-400 text-base font-bold'> Workouts </Text>
-                        <Text className='text-gray-400 text-sm font-bold'> 0 </Text>
+                        <Text className='text-gray-400 text-sm font-bold'> {workouts} </Text>
                     </View>
                 </View>
             </TouchableOpacity>

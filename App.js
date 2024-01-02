@@ -21,7 +21,8 @@ import Profile from './screens/Profile/Settings/Profile';
 
 import About from './screens/Profile/About/About';
 
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
+import * as FileSystem from 'expo-file-system';
 
 const Stack = createNativeStackNavigator();
 export const AppContext = createContext();
@@ -29,7 +30,7 @@ export const AppContext = createContext();
 export default function App() {
   const [state, setState] = useState(false);
   const [user, setUser] = useState({ name: "", image: "" });
-
+  const [workouts, setWorkouts] = useState(0)
   const time = Array.from({ length: (10 * 60) / 5 + 1 }, (_, index) => {
     const timeInSeconds = index * 5;
     const minutes = Math.floor(timeInSeconds / 60);
@@ -44,8 +45,70 @@ export default function App() {
     }
   });
 
+  const loadUserInfo = async () => {
+    try {
+      // Read the contents of userInfo.json
+      const userInfoString = await FileSystem.readAsStringAsync(
+        `${FileSystem.documentDirectory}userInfo.json`
+      );
+
+      // Parse the JSON string to get the user information
+      const userInfo = JSON.parse(userInfoString);
+
+      setUser((prevUser) => ({
+        ...prevUser,
+        name: userInfo.name !== "" ? userInfo.name : prevUser.name,
+        image: userInfo.imageUri !== "" ? userInfo.imageUri : prevUser.image,
+      }));
+
+    } catch (error) {
+      console.error('Error loading user information:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadUserInfo();
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const directoryUri = FileSystem.documentDirectory + "/routines/";
+
+        const countJsonFiles = async (dir) => {
+          let count = 0;
+
+          const files = await FileSystem.readDirectoryAsync(dir);
+
+          for (const file of files) {
+            const filePath = dir + file;
+            const isDirectory = (await FileSystem.getInfoAsync(filePath)).isDirectory;
+
+            if (isDirectory) {
+              // Recursively count JSON files in subdirectories
+              count += await countJsonFiles(filePath + "/");
+            } else if (file.endsWith('.json')) {
+              count++;
+            }
+          }
+
+          return count;
+        };
+
+        const numberOfJsonFiles = await countJsonFiles(directoryUri);
+        setWorkouts(numberOfJsonFiles)
+
+      } catch (error) {
+        console.error('Error reading directory:', error);
+      }
+    };
+
+    // Call the loadData function when the component mounts
+    loadData();
+  }, []);
+
   return (
-    <AppContext.Provider value={{ setState, state, time, user, setUser }}>
+    <AppContext.Provider value={{ setState, state, time, user, setUser, workouts }}>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{
           headerShown: false

@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, Text, TextInput, Image, ScrollView, Modal } from 'react-native'
+import { TouchableOpacity, View, Text, Image, Modal } from 'react-native'
 import { remove, repeat } from "../../assets/SVG";
 
 const EditRotineOptions = ({ isOpen, onClose, setSetEditIndex }) => {

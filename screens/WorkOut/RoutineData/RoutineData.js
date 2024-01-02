@@ -103,7 +103,7 @@ export default function RoutineData({ navigation }) {
 
                         <View className="flex flex-row items-center justify-between">
                             <View className="flex flex-row gap-3 items-center">
-                                <Image source={{ uri: exercise.photoLink }} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
+                                <Image source={exercise.photoLink} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
                                 <Text className="flex flex-col items-start text-blue-700 text-lg font-bold">{exercise.name}</Text>
                             </View>
                         </View>
@@ -124,12 +124,12 @@ export default function RoutineData({ navigation }) {
 
                             {exercise.setInfo.map((sets, innerIndex) => (
 
-                                <View className="flex flex-row mt-2 h-8" key={innerIndex}>
+                                <View className="flex flex-row mt-2 h-8 gap-x-14" key={innerIndex}>
 
                                     {sets.items.map((item) => (
                                         <View className="flex flex-row items-center">
                                             <TextInput
-                                                className="text-lg outline:none text-black placeholder:text-gray-400 placeholder:font-medium font-bold w-6 mr-12"
+                                                className="text-lg outline:none text-black placeholder:text-gray-400 placeholder:font-medium font-bold w-6"
                                                 defaultValue={item.value.toString()}
                                                 readOnly={true}
                                             />

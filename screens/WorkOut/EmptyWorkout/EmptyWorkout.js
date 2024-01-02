@@ -12,10 +12,11 @@ import GestureRecognizer from 'react-native-swipe-gestures';
 import * as Haptics from 'expo-haptics';
 import Alerts from '../../../Components/Utils/Alerts';
 import { AppContext } from '../../../App';
+import { Audio } from 'expo-av';
 
 export default function EmptyWorkout({ navigation }) {
     const [initialTime, setInitalTime] = useState(0)
-
+    const [ClockFinsihSound, setClockFinsihSound] = useState();
     const { setState, state } = useContext(AppContext);
 
     const [routineTitle, setRoutineTitle] = useState('');
@@ -101,6 +102,15 @@ export default function EmptyWorkout({ navigation }) {
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     };
 
+    const playSound = async () => {
+        await ClockFinsihSound.playAsync();
+    }
+
+    useEffect(async () => {
+        const { sound } = await Audio.Sound.createAsync(require('../../../assets/Sounds/ClockFinish.mp3'));
+        setClockFinsihSound(sound);
+    }, []);
+
     useEffect(() => {
         let timer;
 
@@ -109,6 +119,7 @@ export default function EmptyWorkout({ navigation }) {
                 setTimeRemaining((prevTime) => {
                     if (prevTime === 0) {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                        playSound();
                         clearInterval(timer);
 
                         setTimerRunning(false);
@@ -400,7 +411,7 @@ export default function EmptyWorkout({ navigation }) {
                         <View className="flex flex-row items-center justify-between">
                             <TouchableOpacity className="flex flex-row gap-3 items-center"
                                 onPress={() => handleExerciseClick(exercise)}>
-                                <Image source={{ uri: exercise.photoLink }} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
+                                <Image source={exercise.photoLink} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
                                 <Text className="flex flex-col items-start text-blue-700 text-lg font-bold">{exercise.name}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => {

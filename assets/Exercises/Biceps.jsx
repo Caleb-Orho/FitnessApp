@@ -1,6 +1,3 @@
-
-
-
 const bicepExercises = [
   {
     name: 'Preacher Curls',
@@ -10,88 +7,64 @@ const bicepExercises = [
   },
   {
     name: 'Dumbbell Hammer Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
-    targetMuscle: 'Biceps',
-    equipment: 'dumbbells',
-  },
-  {
-    name: 'Preacher Curl',
     photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'Concentration Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ConcentrationCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'EZ Bar Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'Incline Dumbbell Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'Cable Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'Reverse Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'Drag Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/DragCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'dumbbells',
   },
   {
     name: 'Zottman Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'barbells',
   },
 
   {
     name: 'Barbell Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'Barbell',
   },
   {
     name: 'Spider Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
+    photoLink: require('../../assets/ExerciseImages/Bicept/PreacherCurls.jpg'),
     targetMuscle: 'Biceps',
     equipment: 'Ez Bar',
-  },
-  {
-    name: 'Zottman Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
-    targetMuscle: 'Biceps',
-    equipment: 'barbells',
-  },
-  {
-    name: 'Zottman Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
-    targetMuscle: 'Biceps',
-    equipment: 'barbells',
-  },
-  {
-    name: 'Zottman Curl',
-    photoLink: require('../../assets/ExerciseImages/Bicept/ZottmanCurl.jpg'),
-    targetMuscle: 'Biceps',
-    equipment: 'barbells',
   },
 ];
 

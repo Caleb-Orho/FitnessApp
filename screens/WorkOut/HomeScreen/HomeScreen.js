@@ -24,9 +24,8 @@ export default function HomeScreen({ navigation }) {
         setAlertVisible(false);
         if (selectedOption == 1) {
             const directoryUri = FileSystem.documentDirectory + "/routines/" + routineName;
-
             try {
-                await FileSystem.deleteAsync(directoryUri, { idempotent: true });
+                await FileSystem.deleteAsync(directoryUri);
                 setState(!state)
             } catch (error) {
                 console.error("Error deleting directory:", error);

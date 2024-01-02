@@ -12,10 +12,11 @@ import GestureRecognizer from 'react-native-swipe-gestures';
 import * as Haptics from 'expo-haptics';
 import Alerts from '../../../Components/Utils/Alerts';
 import { AppContext } from '../../../App';
+import { Audio } from 'expo-av';
 
 export default function StartRoutine({ navigation }) {
     const [initialTime, setInitalTime] = useState(0)
-
+    const [ClockFinsihSound, setClockFinsihSound] = useState();
     const { setState, state } = useContext(AppContext);
 
     const [alertText, setAlertText] = useState()
@@ -46,11 +47,25 @@ export default function StartRoutine({ navigation }) {
     const [isAlertVisible, setAlertVisible] = useState(false);
 
     const [empty, setEmpty] = useState(0)
+
+    const initialTestState = Array.from({ length: 100 }, () =>
+        Array.from({ length: 50 }, () => false)
+    );
+
+    const playSound = async () => {
+        await ClockFinsihSound.playAsync();
+    }
+
+    useEffect(async () => {
+        const { sound } = await Audio.Sound.createAsync(require('../../../assets/Sounds/ClockFinish.mp3'));
+        setClockFinsihSound(sound);
+    }, []);
+
     const [swipeState, setSwipeState] = useState({
         myText: 'I\'m ready to get swiped!',
         gestureName: 'none',
         backgroundColor: '#fff',
-        test: [false, false, false, false, false, false, false, false, false],
+        test: initialTestState,
     })
 
     const handleRestTimeChange = (exerciseName, selectedTime) => {
@@ -75,17 +90,37 @@ export default function StartRoutine({ navigation }) {
         setAlertVisible(false);
     };
 
-    const onSwipeLeft = (index) => {
-        setSwipeState({ myText: 'You swiped left!', test: { ...swipeState.test, [index]: true } })
+    const onSwipeLeft = (index, innerIndex) => {
+        console.log(index, innerIndex)
+        setSwipeState(prevState => ({
+            ...prevState,
+            test: {
+                ...prevState.test,
+                [index]: {
+                    ...prevState.test[index],
+                    [innerIndex]: true
+                }
+            }
+        }));
     }
 
-    const onSwipeRight = (index) => {
-        setSwipeState({ myText: 'You swiped right!', test: { ...swipeState.test, [index]: false } })
+    const onSwipeRight = (index, innerIndex) => {
+        setSwipeState(prevState => ({
+            ...prevState,
+            test: {
+                ...prevState.test,
+                [index]: {
+                    ...prevState.test[index],
+                    [innerIndex]: false
+                }
+            }
+        }));
     }
+
 
     const config = {
-        velocityThreshold: 1,
-        directionalOffsetThreshold: 130
+        velocityThreshold: 0.1,
+        directionalOffsetThreshold: 50
     };
 
     const resetTimer = () => {
@@ -108,6 +143,7 @@ export default function StartRoutine({ navigation }) {
                 setTimeRemaining((prevTime) => {
                     if (prevTime === 0) {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                        playSound();
                         clearInterval(timer);
 
                         setTimerRunning(false);
@@ -162,7 +198,7 @@ export default function StartRoutine({ navigation }) {
 
                 // Read file
                 const files = await FileSystem.readDirectoryAsync(directoryUri);
-                
+
                 try {
                     const jsonData = await FileSystem.readAsStringAsync(directoryUri + files[0], {
                         encoding: FileSystem.EncodingType.UTF8,
@@ -308,6 +344,15 @@ export default function StartRoutine({ navigation }) {
     }
 
     const finishWorkout = async () => {
+        if (routine.length === 0) {
+            setAlertOptions([
+                { value: '2', label: 'Ok' },
+            ]);
+            setAlertText("Workout Invalid")
+            setAlertVisible(true);
+            return
+        }
+
         for (const exercise of routine) {
             for (const set of exercise.setInfo) {
                 for (const item of set.items) {
@@ -405,7 +450,11 @@ export default function StartRoutine({ navigation }) {
                         <View className="flex flex-row items-center justify-between">
                             <TouchableOpacity className="flex flex-row gap-3 items-center"
                                 onPress={() => handleExerciseClick(exercise)}>
-                                <Image source={{ uri: exercise.photoLink }} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
+
+                                {/* <Image source={require('../../../assets/ExerciseImages/Bicept/PreacherCurls.jpg')} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" /> */}
+
+
+                                <Image source={exercise.photoLink} alt={exercise.name} className="w-12 h-12 rounded-full flex-shrink-0" />
                                 <Text className="flex flex-col items-start text-blue-700 text-lg font-bold">{exercise.name}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => {
@@ -445,11 +494,11 @@ export default function StartRoutine({ navigation }) {
 
                                 <GestureRecognizer
                                     // onSwipe={(direction, state) => onSwipe(direction, state)}
-                                    onSwipeLeft={() => onSwipeLeft(innerIndex)}
-                                    onSwipeRight={() => onSwipeRight(innerIndex)}
+                                    onSwipeLeft={() => onSwipeLeft(index, innerIndex)}
+                                    onSwipeRight={() => onSwipeRight(index, innerIndex)}
                                     config={config}
                                 >
-                                    <View className="flex flex-row mt-2 h-8" key={innerIndex}>
+                                    <View className="flex flex-row mt-2 h-9" key={innerIndex}>
 
 
                                         {sets.items.map((item, itemIndex) => (
@@ -466,7 +515,7 @@ export default function StartRoutine({ navigation }) {
                                                     <View className="flex flex-row items-center">
                                                         {itemIndex === 1 && (
                                                             <Text className="text-gray-400 font-medium text-sm w-16 mr-12">
-                                                                {prevRoutinee[index]?.setInfo[innerIndex]?.items[0].value + " lbs x " + prevRoutinee[index]?.setInfo[innerIndex]?.items[1].value}
+                                                                {prevRoutinee[index]?.setInfo[innerIndex]?.items[0].value ?? "1"} lbs x {prevRoutinee[index]?.setInfo[innerIndex]?.items[1].value ?? "-"}
                                                             </Text>
                                                         )}
                                                         <TextInput
@@ -484,7 +533,7 @@ export default function StartRoutine({ navigation }) {
                                             </View>
                                         ))}
 
-                                        {!swipeState.test[innerIndex] ? (
+                                        {!swipeState.test[index][innerIndex] ? (
                                             <TouchableOpacity className="flex items-center justify-center ml-3">
                                                 <Checkbox
                                                     key={`input-${key}-${index}`}
@@ -498,7 +547,8 @@ export default function StartRoutine({ navigation }) {
                                                 />
                                             </TouchableOpacity>
                                         ) : (
-                                            <TouchableOpacity onPress={() => removeExercise(index, innerIndex)}>
+                                            <TouchableOpacity onPress={() => removeExercise(index, innerIndex)}
+                                                key={`input-${key}-${index}`}>
                                                 <Image source={trash} className='w-5 h-7 ml-3' />
                                             </TouchableOpacity>
                                         )}

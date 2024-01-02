@@ -27,7 +27,7 @@ const Profile = ({ navigation }) => {
         try {
             const result = await DocumentPicker.getDocumentAsync({ type: 'image/*', copyToCacheDirectory: false });
             setImageUri(result.assets[0].uri);
-
+            console.log(result)
             // { type: 'image/*', copyToCacheDirectory: false }
 
         } catch (error) {

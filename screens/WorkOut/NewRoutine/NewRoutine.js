@@ -6,6 +6,7 @@ import EditSet from '../../../Components/Utils/EditSet';
 import Alerts from '../../../Components/Utils/Alerts';
 import TimePicker from '../../../Components/Utils/TimePicker';
 import { AppContext } from '../../../App';
+import * as Haptics from 'expo-haptics';
 
 export default function NewRoutine({ navigation }) {
 
@@ -286,7 +287,10 @@ export default function NewRoutine({ navigation }) {
 
                 {/* Add exercise TouchableOpacity */}
                 <TouchableOpacity className='border-[1px] border-gray-200 flex items-center justify-center flex-row rounded-md mt-2 bg-blue-700'
-                    onPress={() => navigation.navigate("AddExercise", { setSelectedExercises })}>
+                    onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
+                            navigation.navigate("AddExercise", { setSelectedExercises })
+                    }}>
                     <Image source={add2} className='w-10 h-9 mr-2' />
                     <Text className='text-white font-medium text-base'>Add exercise</Text>
                 </TouchableOpacity>

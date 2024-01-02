@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { TouchableOpacity, View, Text, Modal } from 'react-native'
-import CircleSlider from "react-native-circle-slider";
+import CircleSlider from "./CircleSlider";
+import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 
 const Clock = ({ isOpen, onClose }) => {
 
+    const [ClockFinsihSound, setClockFinsihSound] = useState();
     const [initialTime, setInitalTime] = useState(15)
 
     const [timeRemaining, setTimeRemaining] = useState(initialTime);
@@ -19,6 +22,8 @@ const Clock = ({ isOpen, onClose }) => {
             timer = setInterval(() => {
                 setTimeRemaining((prevTime) => {
                     if (prevTime === 0) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        playSound()
                         clearInterval(timer);
                         setTimerRunning(false);
                         setTimeRemaining(initialTime)
@@ -35,6 +40,16 @@ const Clock = ({ isOpen, onClose }) => {
         return () => clearInterval(timer); // Cleanup on component unmount
 
     }, [timerRunning]);
+
+    const playSound = async () => {
+        await ClockFinsihSound.playAsync();
+    }
+
+    useEffect(async () => {
+        const { sound } = await Audio.Sound.createAsync(require('../../assets/Sounds/ClockFinish.mp3'));
+        setClockFinsihSound(sound);
+    }, []);
+
 
     useEffect(() => {
         setSliderKey((prevKey) => prevKey + 1);
@@ -139,10 +154,9 @@ const Clock = ({ isOpen, onClose }) => {
 
                     </View>
 
-
                     {/* Start button */}
                     <TouchableOpacity
-                        className={`w-[90%] h-[15%] border-[1px] border-gray-200 flex items-center justify-center rounded-md mb-5 mt-5 ${timerRunning ? 'bg-red-700' : 'bg-blue-700'}`}
+                        className={`w-[90%] h-[15%] border-[1px] border-gray-200 flex items-center justify-center rounded-md mb-5 mt-5 ${timerRunning ? 'bg-red-600' : 'bg-blue-700'}`}
                         onPress={handleStartButtonPress}
                     >
                         <Text className='text-white font-medium text-base'>
